@@ -97,7 +97,7 @@ export function Hero() {
               animate={{ x: [0, 5, 0] }} 
               transition={{ repeat: Infinity, duration: 1.5 }}
             >
-              ✨
+              🚀
             </motion.span>
           </button>
         </motion.div>

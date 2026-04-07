@@ -97,7 +97,7 @@ export function Hero() {
               animate={{ x: [0, 5, 0] }} 
               transition={{ repeat: Infinity, duration: 1.5 }}
             >
-              ✨
+              src="/lowcortisol.gif"
             </motion.span>
           </button>
         </motion.div>

@@ -36,7 +36,7 @@ export function About() {
           {[
             { icon: Droplets, title: "Krim Lembut", desc: "Kaya, lezat, dan manis yang pas.", color: "bg-blue-50 text-blue-500" },
             { icon: Sparkles, title: "Rasa Seru", desc: "Sangat inovatif dan bikin nostalgia.", color: "bg-pink-50 text-pink-500" },
-            { icon: Heart, title: "Dibuat dgn Cinta", desc: "Diracik untuk membuat harimu lebih baik.", color: "bg-emerald-50 text-emerald-500" },
+            { icon: Heart, title: "Dibuat dengan Cinta", desc: "Diracik untuk membuat harimu lebih baik.", color: "bg-emerald-50 text-emerald-500" },
           ].map((feature, i) => (
             <motion.div
               key={i}

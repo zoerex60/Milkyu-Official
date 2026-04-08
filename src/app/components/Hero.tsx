@@ -63,11 +63,11 @@ export function Hero() {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="text-5xl md:text-7xl font-black text-amber-950 mb-4 tracking-tight"
+          className="text-3xl md:text-5xl font-black text-amber-950 mb-4 tracking-tight"
         >
-          Manisnya pas<br className="md:hidden" />
+          Manisnya pas,<br className="md:hidden" />
           <span className="text-pink-500 relative inline-block">
-            Segarnya dapet
+             Segarnya dapet
             <svg className="absolute w-full h-4 -bottom-1 left-0 text-pink-300 -z-10" viewBox="0 0 100 20" preserveAspectRatio="none">
               <path d="M0 10 Q 50 20 100 10" fill="transparent" stroke="currentColor" strokeWidth="8" strokeLinecap="round"/>
             </svg>

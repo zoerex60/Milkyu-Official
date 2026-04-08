@@ -25,18 +25,17 @@ export function About() {
           </h2>
           
           <p className="text-xl md:text-2xl text-amber-900/70 leading-relaxed font-medium bg-amber-50/50 p-8 md:p-12 rounded-[3rem] shadow-sm border border-amber-100/50">
-            Kami percaya bahwa susu bukan sekadar minuman; ini adalah sebuah pengalaman. 
-            Lahir dari dapur kecil dengan mimpi besar, Stickymilk meracik minuman yang menyenangkan, 
-            bernostalgia, dan sangat lezat. <strong className="text-amber-950">Milkyu</strong> adalah kreasi terbaru kami—perpaduan sempurna antara kelezatan krim dan nuansa Gen-Z, 
-            dirancang untuk membuatmu tersenyum di setiap tegukan.
+            Stickymilk hadir karena kita percaya segelas susu bisa jadi cara paling simpel buat balikin mood.
+            Berawal dari racikan rumahan, kami bikin <strong className="text-amber-950">Milkyu</strong> dengan tekstur
+            yang creamy dan rasa yang pas. Nggak perlu berlebihan, yang penting segar di setiap tegukan.
           </p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
           {[
-            { icon: Droplets, title: "Krim Lembut", desc: "Kaya, lezat, dan manis yang pas.", color: "bg-blue-50 text-blue-500" },
+            { icon: Droplets, title: "Saus Lembut", desc: "Kaya, lezat, dan manis yang pas.", color: "bg-blue-50 text-blue-500" },
             { icon: Sparkles, title: "Rasa Seru", desc: "Sangat inovatif dan bikin nostalgia.", color: "bg-pink-50 text-pink-500" },
-            { icon: Heart, title: "Dibuat dengan Cinta", desc: "Diracik untuk membuat harimu lebih baik.", color: "bg-emerald-50 text-emerald-500" },
+            { icon: Heart, title: "Dibuat Sepenuh Hati", desc: "Diracik untuk membuat harimu lebih baik.", color: "bg-emerald-50 text-emerald-500" },
           ].map((feature, i) => (
             <motion.div
               key={i}

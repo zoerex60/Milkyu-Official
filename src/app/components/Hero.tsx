@@ -54,7 +54,7 @@ export function Hero() {
             <ImageWithFallback 
               src="/Milkyulogo.png"
               alt="Milkyu Big Logo" 
-              className="w-48 h-48 md:w-64 md:h-64 object-contain"
+              className="w-45 h-45 md:w-60 md:h-60 object-contain"
             />
           </div>
         </motion.div>
@@ -65,9 +65,9 @@ export function Hero() {
           transition={{ delay: 0.2 }}
           className="text-5xl md:text-7xl font-black text-amber-950 mb-4 tracking-tight"
         >
-          Manis di <br className="md:hidden" />
+          Manisnya pas<br className="md:hidden" />
           <span className="text-pink-500 relative inline-block">
-            Setiap Tegukan
+            Segarnya dapet
             <svg className="absolute w-full h-4 -bottom-1 left-0 text-pink-300 -z-10" viewBox="0 0 100 20" preserveAspectRatio="none">
               <path d="M0 10 Q 50 20 100 10" fill="transparent" stroke="currentColor" strokeWidth="8" strokeLinecap="round"/>
             </svg>
@@ -80,7 +80,7 @@ export function Hero() {
           transition={{ delay: 0.3 }}
           className="text-lg md:text-xl text-amber-800/80 mb-10 max-w-lg font-medium"
         >
-          Minuman susu paling estetik dan lezat yang pernah kamu rasakan. Dibuat dengan cinta oleh Stickymilk.
+          Nikmati perpaduan susu yang segar di tenggorokan dengan sedikit saus kental. Karena yang enak nggak harus berlebihan.
         </motion.p>
 
         <motion.div

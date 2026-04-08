@@ -63,7 +63,7 @@ export function Hero() {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="text-3xl md:text-5xl font-black text-amber-950 mb-4 tracking-tight"
+          className="text-4xl md:text-6xl font-black text-amber-950 mb-4 tracking-tight"
         >
           Manisnya pas,<br className="md:hidden" />
           <span className="text-pink-500 relative inline-block">

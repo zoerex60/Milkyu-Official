@@ -86,6 +86,15 @@ export function MilkyuMascot() {
           70%  { transform: scale(1.06) translateY(-2px); }
           100% { opacity: 1; transform: scale(1) translateY(0); }
         }
+        @keyframes hint-pop {
+          0%   { opacity: 0; transform: scale(0.7) translateY(8px); }
+          70%  { transform: scale(1.05) translateY(-1px); }
+          100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes hint-pulse {
+          0%, 100% { box-shadow: 0 4px 16px rgba(255,179,198,0.4); }
+          50%       { box-shadow: 0 4px 24px rgba(255,179,198,0.75); }
+        }
         .milkyu-bounce {
           animation: milkyu-bounce 2.4s ease-in-out infinite;
         }
@@ -100,7 +109,76 @@ export function MilkyuMascot() {
         .chat-bubble {
           animation: bubble-pop 0.3s ease-out forwards;
         }
+        .hint-bubble {
+          animation: hint-pop 0.4s ease-out forwards, hint-pulse 2s 0.4s ease-in-out infinite;
+        }
       `}</style>
+
+      {/* ── HINT BUBBLE "klik aku" — hanya tampil sebelum open ── */}
+      <AnimatePresence>
+        {!open && (
+          <motion.div
+            key="hint"
+            initial={{ opacity: 0, scale: 0.7, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.7, y: 8 }}
+            transition={{ delay: 1.8, duration: 0.35, ease: "easeOut" }}
+            style={{
+              position: "fixed",
+              right: size.right + (isMobile ? size.w - 10 : size.w + 4),
+              bottom: size.bottom + (isMobile ? size.h * 0.45 : size.h * 0.5),
+              zIndex: 9999,
+              pointerEvents: "none",
+            }}
+          >
+            <div
+              className="hint-bubble"
+              style={{
+                background: "#fff",
+                borderRadius: 14,
+                padding: isMobile ? "6px 11px" : "7px 13px",
+                boxShadow: "0 4px 16px rgba(255,179,198,0.4)",
+                border: "1.5px solid #ffb3c6",
+                whiteSpace: "nowrap",
+                position: "relative",
+              }}
+            >
+              <span style={{
+                fontSize: isMobile ? "0.7rem" : "0.75rem",
+                fontWeight: 700,
+                color: "#c9697a",
+              }}>
+                Kyumii: "klik aku" 👆
+              </span>
+              {/* Panah ke kanan menuju maskot */}
+              <div style={{
+                position: "absolute",
+                right: -8,
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: 0,
+                height: 0,
+                borderTop: "7px solid transparent",
+                borderBottom: "7px solid transparent",
+                borderLeft: "8px solid #fff",
+                filter: "drop-shadow(1px 0 1px rgba(255,179,198,0.4))",
+              }} />
+              <div style={{
+                position: "absolute",
+                right: -10,
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: 0,
+                height: 0,
+                borderTop: "7px solid transparent",
+                borderBottom: "7px solid transparent",
+                borderLeft: "8px solid #ffb3c6",
+                zIndex: -1,
+              }} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Chat Bubble */}
       <AnimatePresence>
@@ -147,7 +225,7 @@ export function MilkyuMascot() {
                   fontWeight: 500,
                 }}
               >
-                Kyumi: "Klik untuk pesan ya kak! Terimakasih🥰"
+                Kyumii: "Klik untuk pesan ya kak! Terimakasih🥰"
               </p>
 
               {/* WhatsApp */}

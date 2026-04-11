@@ -1,4 +1,5 @@
 import { motion, useScroll, useTransform } from "motion/react";
+import { useState, useEffect } from "react";
 import { BobaCup } from "./components/BobaCup";
 import { MilkyuMascot } from "./components/MilkyuMascot";
 
@@ -6,6 +7,14 @@ export default function App() {
   const { scrollYProgress } = useScroll();
   const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
+
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   return (
     <div className="min-h-screen" style={{ background: "#f7f4ef", position: "relative", overflow: "hidden" }}>
@@ -99,10 +108,10 @@ export default function App() {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 1, ease: "easeOut" }}
-            style={{ position: "relative", width: 160, height: 160, margin: "0 auto 2rem" }}
+            style={{ position: "relative", width: isMobile ? 110 : 160, height: isMobile ? 110 : 160, margin: "0 auto 2rem" }}
           >
             <motion.svg
-              width="160" height="160" viewBox="0 0 160 160"
+              width={isMobile ? 110 : 160} height={isMobile ? 110 : 160} viewBox="0 0 160 160"
               style={{ position: "absolute", top: 0, left: 0 }}
               animate={{ rotate: 360 }}
               transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
@@ -111,7 +120,7 @@ export default function App() {
                 strokeDasharray="40 20 10 20" strokeLinecap="round" opacity="0.35" />
             </motion.svg>
             <motion.svg
-              width="160" height="160" viewBox="0 0 160 160"
+              width={isMobile ? 110 : 160} height={isMobile ? 110 : 160} viewBox="0 0 160 160"
               style={{ position: "absolute", top: 0, left: 0 }}
               animate={{ rotate: -360 }}
               transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
@@ -123,7 +132,7 @@ export default function App() {
               src="/milkyu-logo.png"
               alt="Milkyu Logo"
               style={{
-                width: 110, height: 110, objectFit: "contain",
+                width: isMobile ? 76 : 110, height: isMobile ? 76 : 110, objectFit: "contain",
                 position: "absolute", top: "50%", left: "50%",
                 transform: "translate(-50%, -50%)"
               }}
@@ -223,14 +232,14 @@ export default function App() {
       </motion.section>
 
       {/* ── FLAVORS ── */}
-      <section id="flavors" className="py-32 px-6" style={{ background: "rgba(255,255,255,0.5)", position: "relative", zIndex: 1 }}>
+      <section id="flavors" className={isMobile ? "py-16 px-4" : "py-32 px-6"} style={{ background: "rgba(255,255,255,0.5)", position: "relative", zIndex: 1 }}>
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="text-center mb-20"
+            className={isMobile ? "text-center mb-10" : "text-center mb-20"}
           >
             <p style={{ fontSize: "0.8rem", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#bbb", marginBottom: "0.75rem" }}>
               Menu
@@ -243,7 +252,10 @@ export default function App() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-16" style={{ position: "relative", zIndex: 2 }}>
+          <div
+            className="grid grid-cols-1 md:grid-cols-3"
+            style={{ gap: isMobile ? "2rem" : "4rem", position: "relative", zIndex: 2 }}
+          >
             {[
               { flavor: "matcha" as const, title: "Matcha Bliss", desc: "Perpaduan susu creamy dan saus sticky milk rasa matcha yang lembut.", delay: 0.1 },
               { flavor: "strawberry" as const, title: "Strawberry Dream", desc: "Susu creamy yang menyatu dalam tekstur saus sticky milk strawberry yang lembut.", delay: 0.3 },
@@ -264,7 +276,7 @@ export default function App() {
       </section>
 
       {/* ── ABOUT ── */}
-      <section id="about" className="py-32 px-6" style={{ background: "rgba(247,244,239,0.5)", position: "relative", zIndex: 1 }}>
+      <section id="about" className={isMobile ? "py-16 px-4" : "py-32 px-6"} style={{ background: "rgba(247,244,239,0.5)", position: "relative", zIndex: 1 }}>
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
             <motion.div
@@ -327,7 +339,7 @@ export default function App() {
         whileInView={{ opacity: 1 }}
         transition={{ duration: 1 }}
         viewport={{ once: true }}
-        className="py-32 px-6"
+        className={isMobile ? "py-16 px-4" : "py-32 px-6"}
         style={{ background: "#1a1a1a" }}
       >
         <div className="max-w-4xl mx-auto text-center">

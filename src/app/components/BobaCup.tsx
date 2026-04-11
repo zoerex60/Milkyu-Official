@@ -109,7 +109,7 @@ export function BobaCup({ flavor, title, description, hideText = false }: BobaCu
           <svg
             width={cupW}
             height={cupH}
-            viewBox="0 0 260 420"
+            viewBox="44 20 172 370"
             preserveAspectRatio="xMidYMid meet"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"

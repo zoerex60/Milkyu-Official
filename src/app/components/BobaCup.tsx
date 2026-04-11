@@ -79,14 +79,14 @@ export function BobaCup({ flavor, title, description, hideText = false }: BobaCu
     return () => { if (pressTimerRef.current) clearTimeout(pressTimerRef.current); };
   }, []);
 
-  const cupW = isMobile ? 160 : 260;
-  const cupH = isMobile ? 260 : 420;
+  const cupW = isMobile ? 175 : 220;
+  const cupH = isMobile ? 384 : 482;
 
   return (
     <div className="flex flex-col items-center" style={{ gap: hideText ? 0 : "1.5rem" }}>
       <motion.div
         className="relative cursor-pointer select-none"
-        style={{ width: cupW, height: cupH }}
+        style={{ width: cupW, height: cupH, perspective: "1000px" }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         onMouseEnter={() => setIsHovered(true)}
@@ -100,8 +100,7 @@ export function BobaCup({ flavor, title, description, hideText = false }: BobaCu
             rotateX: springRotateX,
             rotateY: springRotateY,
             scale: springScale,
-            // FIXED: HAPUS transformStyle:"preserve-3d" — ini yang bikin
-            // elemen bisa keluar secara Z dan terpotong di mobile
+            transformStyle: "preserve-3d",
             width: "100%",
             height: "100%",
           }}
@@ -109,13 +108,11 @@ export function BobaCup({ flavor, title, description, hideText = false }: BobaCu
           <svg
             width={cupW}
             height={cupH}
-            viewBox="44 20 172 370"
+            viewBox="50 25 162 355"
             preserveAspectRatio="xMidYMid meet"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             style={{ display: "block" }}
-            // FIXED: HAPUS style transform translateZ(50px) dari SVG
-            // translateZ di dalam preserve-3d context = keluar dari viewport = TERPOTONG
           >
             <defs>
               <clipPath id={`cupClip-${flavor}`}>

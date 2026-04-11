@@ -5,7 +5,6 @@ interface BobaCupProps {
   flavor: "matcha" | "strawberry" | "chocolate";
   title: string;
   description: string;
-  /** Jika true, sembunyikan title & description (untuk carousel yang render teks sendiri) */
   hideText?: boolean;
 }
 
@@ -32,25 +31,16 @@ export function BobaCup({ flavor, title, description, hideText = false }: BobaCu
 
   const flavorColors = {
     matcha: {
-      drinkTop: "#4a7c4e",
-      drinkMid: "#6aaa6e",
-      drinkSwirl: "#a8d5a2",
-      milkBase: "#e8f0e0",
-      accent: "#5a9c5a",
+      drinkTop: "#4a7c4e", drinkMid: "#6aaa6e", drinkSwirl: "#a8d5a2",
+      milkBase: "#e8f0e0", accent: "#5a9c5a",
     },
     strawberry: {
-      drinkTop: "#e8606e",
-      drinkMid: "#f0899a",
-      drinkSwirl: "#f9c0c8",
-      milkBase: "#fef0f2",
-      accent: "#e8607a",
+      drinkTop: "#e8606e", drinkMid: "#f0899a", drinkSwirl: "#f9c0c8",
+      milkBase: "#fef0f2", accent: "#e8607a",
     },
     chocolate: {
-      drinkTop: "#3b1f0e",
-      drinkMid: "#6b3a1f",
-      drinkSwirl: "#a0673a",
-      milkBase: "#f0e6d8",
-      accent: "#8b5a3c",
+      drinkTop: "#3b1f0e", drinkMid: "#6b3a1f", drinkSwirl: "#a0673a",
+      milkBase: "#f0e6d8", accent: "#8b5a3c",
     },
   };
 
@@ -61,8 +51,8 @@ export function BobaCup({ flavor, title, description, hideText = false }: BobaCu
       const rect = e.currentTarget.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      rotateY.set(((x - rect.width / 2) / (rect.width / 2)) * 15);
-      rotateX.set(((rect.height / 2 - y) / (rect.height / 2)) * 15);
+      rotateY.set(((x - rect.width / 2) / (rect.width / 2)) * 12);
+      rotateX.set(((rect.height / 2 - y) / (rect.height / 2)) * 12);
     }
   };
 
@@ -73,7 +63,7 @@ export function BobaCup({ flavor, title, description, hideText = false }: BobaCu
   const handlePressStart = () => {
     pressTimerRef.current = setTimeout(() => {
       setIsPressed(true);
-      scale.set(1.8);
+      scale.set(1.5);
       rotateX.set(0);
       rotateY.set(0);
     }, 500);
@@ -89,7 +79,6 @@ export function BobaCup({ flavor, title, description, hideText = false }: BobaCu
     return () => { if (pressTimerRef.current) clearTimeout(pressTimerRef.current); };
   }, []);
 
-  // Mobile: lebih kecil agar muat di carousel container
   const cupW = isMobile ? 160 : 260;
   const cupH = isMobile ? 260 : 420;
 
@@ -97,7 +86,7 @@ export function BobaCup({ flavor, title, description, hideText = false }: BobaCu
     <div className="flex flex-col items-center" style={{ gap: hideText ? 0 : "1.5rem" }}>
       <motion.div
         className="relative cursor-pointer select-none"
-        style={{ perspective: "1000px", width: cupW, height: cupH }}
+        style={{ width: cupW, height: cupH }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         onMouseEnter={() => setIsHovered(true)}
@@ -105,14 +94,14 @@ export function BobaCup({ flavor, title, description, hideText = false }: BobaCu
         onMouseUp={handlePressEnd}
         onTouchStart={handlePressStart}
         onTouchEnd={handlePressEnd}
-        whileHover={{ scale: 1.05 }}
       >
         <motion.div
           style={{
             rotateX: springRotateX,
             rotateY: springRotateY,
             scale: springScale,
-            transformStyle: "preserve-3d",
+            // FIXED: HAPUS transformStyle:"preserve-3d" — ini yang bikin
+            // elemen bisa keluar secara Z dan terpotong di mobile
             width: "100%",
             height: "100%",
           }}
@@ -124,31 +113,31 @@ export function BobaCup({ flavor, title, description, hideText = false }: BobaCu
             preserveAspectRatio="xMidYMid meet"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            style={{ transform: "translateZ(50px)", display: "block" }}
+            style={{ display: "block" }}
+            // FIXED: HAPUS style transform translateZ(50px) dari SVG
+            // translateZ di dalam preserve-3d context = keluar dari viewport = TERPOTONG
           >
             <defs>
               <clipPath id={`cupClip-${flavor}`}>
                 <path d="M 58 130 L 90 358 Q 90 368 105 368 L 155 368 Q 170 368 170 358 L 202 130 Z" />
               </clipPath>
-              <filter id={`shadow-${flavor}`}>
-                <feGaussianBlur in="SourceAlpha" stdDeviation="6" />
-                <feOffset dx="2" dy="8" result="offsetblur" />
+              {/* FIXED: filter shadow punya x/y/width/height agar shadow tidak clip */}
+              <filter id={`shadow-${flavor}`} x="-5%" y="-2%" width="115%" height="115%">
+                <feGaussianBlur in="SourceAlpha" stdDeviation="4" />
+                <feOffset dx="1" dy="5" result="offsetblur" />
                 <feComponentTransfer>
-                  <feFuncA type="linear" slope="0.2" />
+                  <feFuncA type="linear" slope="0.15" />
                 </feComponentTransfer>
                 <feMerge>
                   <feMergeNode />
                   <feMergeNode in="SourceGraphic" />
                 </feMerge>
               </filter>
-              <clipPath id={`domeClip-${flavor}`}>
-                <path d="M 54 117 Q 54 80 130 78 Q 206 80 206 117 L 206 128 L 54 128 Z" />
-              </clipPath>
             </defs>
 
             <g filter={`url(#shadow-${flavor})`}>
 
-              {/* ── DOME LID ── */}
+              {/* DOME LID */}
               <path
                 d="M 54 117 Q 54 76 130 74 Q 206 76 206 117 L 206 128 L 54 128 Z"
                 fill="rgba(210,228,240,0.92)"
@@ -161,7 +150,7 @@ export function BobaCup({ flavor, title, description, hideText = false }: BobaCu
               <rect x="54" y="118" width="152" height="10" rx="3" fill="rgba(190,215,232,0.88)" stroke="rgba(160,195,218,0.5)" strokeWidth="1" />
               <rect x="58" y="119" width="80" height="3" rx="1.5" fill="rgba(255,255,255,0.4)" />
 
-              {/* ── CUP BODY ── */}
+              {/* CUP BODY */}
               <g clipPath={`url(#cupClip-${flavor})`}>
                 <rect x="55" y="130" width="150" height="90" fill={c.drinkTop} />
                 <path d="M 58 175 Q 100 157 140 181 Q 172 199 205 171" stroke={c.drinkSwirl} strokeWidth="20" strokeLinecap="round" fill="none" opacity="0.55">
@@ -191,7 +180,7 @@ export function BobaCup({ flavor, title, description, hideText = false }: BobaCu
               <path d="M 62 137 L 92 351" stroke="rgba(255,255,255,0.42)" strokeWidth="6" strokeLinecap="round" />
               <path d="M 198 137 L 168 351" stroke="rgba(255,255,255,0.14)" strokeWidth="3" strokeLinecap="round" />
 
-              {/* ── WHITE BOTTOM BASE ── */}
+              {/* WHITE BOTTOM BASE */}
               <path
                 d="M 92 331 L 90 358 Q 90 368 105 368 L 155 368 Q 170 368 170 358 L 168 331 Z"
                 fill="rgba(245,244,240,0.97)"
@@ -200,16 +189,14 @@ export function BobaCup({ flavor, title, description, hideText = false }: BobaCu
               />
               <line x1="92" y1="331" x2="168" y2="331" stroke="rgba(185,182,175,0.3)" strokeWidth="1" />
 
-              {/* ── LOGO ── */}
+              {/* LOGO */}
               <foreignObject x="88" y="241" width="84" height="80">
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>
                   <img
                     src="/milkyu-logo.png"
                     alt="Milkyu"
                     style={{
-                      width: "72px",
-                      height: "72px",
-                      objectFit: "contain",
+                      width: "72px", height: "72px", objectFit: "contain",
                       opacity: isHovered || isPressed ? 1 : 0.88,
                       transition: "opacity 0.2s",
                     }}
@@ -217,7 +204,7 @@ export function BobaCup({ flavor, title, description, hideText = false }: BobaCu
                 </div>
               </foreignObject>
 
-              {/* ── STRAW ── */}
+              {/* STRAW */}
               <rect x="129" y="30" width="9" height="175" rx="4.5" fill="rgba(0,0,0,0.18)" transform="rotate(7, 133, 110)" />
               <rect x="127" y="28" width="9" height="175" rx="4.5" fill="#111111" transform="rotate(7, 131, 109)" />
               <rect x="128.5" y="30" width="2.5" height="155" rx="1.25" fill="rgba(255,255,255,0.18)" transform="rotate(7, 129.5, 101)" />
@@ -227,7 +214,6 @@ export function BobaCup({ flavor, title, description, hideText = false }: BobaCu
         </motion.div>
       </motion.div>
 
-      {/* Teks hanya ditampilkan kalau bukan mode carousel (hideText=false) */}
       {!hideText && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}

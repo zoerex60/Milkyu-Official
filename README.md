@@ -1,7 +1,7 @@
 
-  # Playful Beverage Landing Page
+  # Website Layout Design
 
-  This is a code bundle for Playful Beverage Landing Page. The original project is available at https://www.figma.com/design/uy4NGNQOEZnX7Q1v81cpeB/Playful-Beverage-Landing-Page.
+  This is a code bundle for Website Layout Design. The original project is available at https://www.figma.com/design/WAmrfJDpTk5Jjsrl5KvfDi/Website-Layout-Design.
 
   ## Running the code
 

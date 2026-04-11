@@ -67,7 +67,7 @@ function FlavorCarousel() {
         </button>
 
         {/* Cup animasi slide */}
-        <div style={{ overflow: "hidden", width: 200, height: 300 }}>
+        <div style={{ overflow: "hidden", width: 160, height: 260 }}>
           <AnimatePresence mode="wait" custom={dir}>
             <motion.div
               key={active}
@@ -326,7 +326,7 @@ export default function App() {
             <div className="info-grid">
               {[
                 { icon: "🕐", label: "Jam Buka", value: "08.00 – 22.00" },
-                { icon: "📍", label: "Lokasi", value: "Daan mogot" },
+                { icon: "📍", label: "Lokasi", value: "Bandung, ID" },
               ].map(({ icon, label, value }) => (
                 <motion.div key={label} whileHover={{ scale: 1.04, background: "rgba(255,255,255,0.1)" }} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "16px", padding: "1.1rem 0.75rem", transition: "background 0.2s", display: "flex", flexDirection: "column", alignItems: "center" }}>
                   <div style={{ fontSize: "1.5rem", marginBottom: "0.35rem" }}>{icon}</div>

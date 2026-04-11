@@ -90,8 +90,8 @@ export function BobaCup({ flavor, title, description, hideText = false }: BobaCu
   }, []);
 
   // Mobile: lebih kecil agar muat di carousel container
-  const cupW = isMobile ? 180 : 260;
-  const cupH = isMobile ? 290 : 420;
+  const cupW = isMobile ? 160 : 260;
+  const cupH = isMobile ? 260 : 420;
 
   return (
     <div className="flex flex-col items-center" style={{ gap: hideText ? 0 : "1.5rem" }}>
@@ -118,9 +118,10 @@ export function BobaCup({ flavor, title, description, hideText = false }: BobaCu
           }}
         >
           <svg
-            width="100%"
-            height="100%"
+            width={cupW}
+            height={cupH}
             viewBox="0 0 260 420"
+            preserveAspectRatio="xMidYMid meet"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             style={{ transform: "translateZ(50px)", display: "block" }}

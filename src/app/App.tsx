@@ -67,7 +67,7 @@ function FlavorCarousel() {
         </button>
 
         {/* Cup animasi slide */}
-        <div style={{ width: 200, height: 400, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ overflow: "hidden", width: 240, height: 360 }}>
           <AnimatePresence mode="wait" custom={dir}>
             <motion.div
               key={active}
@@ -83,7 +83,6 @@ function FlavorCarousel() {
                 flavor={f.flavor}
                 title={f.title}
                 description={f.description}
-                hideText={true}
               />
             </motion.div>
           </AnimatePresence>
@@ -238,7 +237,7 @@ export default function App() {
         style={{ opacity: heroOpacity, scale: heroScale }}
         className="relative min-h-screen flex items-center justify-center px-5"
       >
-        <div className="max-w-4xl mx-auto text-center w-full" style={{ position: "relative", zIndex: 2, paddingTop: "4rem", marginTop: "-5vh" }}>
+        <div className="max-w-4xl mx-auto text-center w-full" style={{ position: "relative", zIndex: 2, paddingTop: "5rem" }}>
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}

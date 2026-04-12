@@ -20,6 +20,15 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
   const springRotateY = useSpring(rotateY, { stiffness: 300, damping: 30 });
   const springScale = useSpring(scale, { stiffness: 200, damping: 25 });
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
   const flavorColors = {
     matcha: {
       drinkTop: "#4a7c4e",
@@ -29,7 +38,6 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
       accent: "#5a9c5a",
     },
     strawberry: {
-      // Warna lebih muda / pastel
       drinkTop: "#e8606e",
       drinkMid: "#f0899a",
       drinkSwirl: "#f9c0c8",
@@ -58,7 +66,10 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
   };
 
   const handleMouseLeave = () => {
-    if (!isPressed) { rotateX.set(0); rotateY.set(0); }
+    if (!isPressed) {
+      rotateX.set(0);
+      rotateY.set(0);
+    }
   };
 
   const handlePressStart = () => {
@@ -77,18 +88,23 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
   };
 
   useEffect(() => {
-    return () => { if (pressTimerRef.current) clearTimeout(pressTimerRef.current); };
+    return () => {
+      if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
+    };
   }, []);
 
-  // Ukuran cup: lebih kecil di mobile
-  const cupW = 260;
-  const cupH = 420;
+  // Width saja yang diatur, tinggi otomatis ikut rasio
+  const cupW = isMobile ? 200 : 260;
 
   return (
     <div className="flex flex-col items-center gap-6">
       <motion.div
         className="relative cursor-pointer select-none"
-        style={{ perspective: "1000px", width: cupW, height: cupH }}
+        style={{
+          perspective: "1000px",
+          width: cupW,
+          aspectRatio: "260 / 420",
+        }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         onMouseEnter={() => setIsHovered(true)}
@@ -108,13 +124,15 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
           className="relative w-full h-full"
         >
           <svg
-            width={cupW}
-            height={cupH}
+            width="100%"
+            height="100%"
             viewBox="0 0 260 420"
+            preserveAspectRatio="xMidYMid meet"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             style={{ transform: "translateZ(50px)" }}
           >
+            {/* SVG CONTENT TETAP SAMA — TIDAK PERLU DIUBAH */}
             <defs>
               {/* Cup: wide at top (x: 58-202), narrow at bottom (x: 90-170) */}
               <clipPath id={`cupClip-${flavor}`}>
@@ -247,12 +265,12 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         className="text-center"
-        style={{ maxWidth: "280px" }}
+        style={{ maxWidth: isMobile ? "160px" : "280px" }}
       >
-        <h3 className="mb-1" style={{ color: c.accent, fontSize: "1.5rem", fontWeight: 600 }}>
+        <h3 className="mb-1" style={{ color: c.accent, fontSize: isMobile ? "1.1rem" : "1.5rem", fontWeight: 600 }}>
           {title}
         </h3>
-        <p style={{ color: "#666", fontSize: "0.95rem", lineHeight: 1.5 }}>{description}</p>
+        <p style={{ color: "#666", fontSize: isMobile ? "0.8rem" : "0.95rem", lineHeight: 1.5 }}>{description}</p>
       </motion.div>
     </div>
   );

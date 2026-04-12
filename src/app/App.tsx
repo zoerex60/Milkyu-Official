@@ -64,8 +64,7 @@ function FlavorCarousel() {
         >
           ‹
         </button>
-        
-        
+
         {/* Pembungkus animasi proporsional agar tidak memotong elemen SVG */}
         <div style={{ overflow: "hidden", width: "100%", maxWidth: "240px", aspectRatio: "260/420", display: "flex", justifyContent: "center" }}>
           <AnimatePresence mode="wait" custom={dir}>
@@ -217,7 +216,7 @@ export default function App() {
         style={{ opacity: heroOpacity, scale: heroScale }}
         className="relative min-h-screen flex items-center justify-center px-5"
       >
-        <div className="max-w-4xl mx-auto text-center w-full" style={{ position: "relative", zIndex: 2, paddingTop: "1rem" }}>
+        <div className="max-w-4xl mx-auto text-center w-full" style={{ position: "relative", zIndex: 2, paddingTop: "5rem" }}>
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -305,7 +304,7 @@ export default function App() {
             <div className="info-grid">
               {[
                 { icon: "🕐", label: "Jam Buka", value: "08.00 – 22.00" },
-                { icon: "📍", label: "Lokasi", value: "Bandung, ID" },
+                { icon: "📍", label: "Lokasi", value: "Daan mogot" },
               ].map(({ icon, label, value }) => (
                 <motion.div key={label} whileHover={{ scale: 1.04, background: "rgba(255,255,255,0.1)" }} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "16px", padding: "1.1rem 0.75rem", transition: "background 0.2s", display: "flex", flexDirection: "column", alignItems: "center" }}>
                   <div style={{ fontSize: "1.5rem", marginBottom: "0.35rem" }}>{icon}</div>

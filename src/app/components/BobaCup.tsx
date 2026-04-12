@@ -4,13 +4,12 @@ import { useState, useRef, useEffect } from "react";
 interface BobaCupProps {
   flavor: "matcha" | "strawberry" | "chocolate";
   title: string;
-  description: string;
 }
 
-export function BobaCup({ flavor, title, description }: BobaCupProps) {
+export function BobaCup({ flavor, title, }: BobaCupProps) {
   const [isPressed, setIsPressed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
- const pressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const rotateX = useMotionValue(0);
   const rotateY = useMotionValue(0);
@@ -261,7 +260,7 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
         <h3 className="mb-1" style={{ color: c.accent, fontSize: isMobile ? "1.1rem" : "1.5rem", fontWeight: 600 }}>
           {title}
         </h3>
-        <p style={{ color: "#666", fontSize: isMobile ? "0.8rem" : "0.95rem", lineHeight: 1.5 }}>{description}</p>
+        <p style={{ color: "#666", fontSize: isMobile ? "0.8rem" : "0.95rem", lineHeight: 1.5 }}></p>
       </motion.div>
     </div>
   );

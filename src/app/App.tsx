@@ -6,20 +6,20 @@ import { MilkyuMascot } from "./components/MilkyuMascot";
 const FLAVORS = [
   {
     flavor: "matcha" as const,
-    title: "Matcha Latte",
-    description: "Paduan matcha premium Jepang dengan susu segar pilihan. Segar, creamy, dan penuh karakter.",
+    title: "Matcha Bliss",
+    description: "Susu creamy yang menyatu dalam tekstur saus sticky milk macha yang lembut.",
     accent: "#5a9c5a",
   },
   {
     flavor: "strawberry" as const,
     title: "Strawberry Dream",
-    description: "Susu creamy yang menyatu dalam tekstur saus sticky milk strawberry yang lembut.",
+    description: "Susu creamy yang menyatu dalam tekstur saus sticky milk stroberi yang lembut.",
     accent: "#e8607a",
   },
   {
     flavor: "chocolate" as const,
-    title: "Chocolate Brown Sugar",
-    description: "Dark chocolate intensif dengan sentuhan brown sugar karamel. Kaya rasa, bikin nagih.",
+    title: "Chocolate Indulgence",
+    description: "Susu creamy yang menyatu dalam tekstur saus sticky milk coklat yang lembut.",
     accent: "#8b5a3c",
   },
 ];

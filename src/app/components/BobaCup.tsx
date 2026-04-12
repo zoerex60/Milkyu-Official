@@ -124,21 +124,24 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
           className="relative w-full h-full"
         >
           <div
-           style={{
-           width: "min(260px, 85vw)",
-           aspectRatio: "260 / 420",
-           perspective: "1000px",
-           margin: "0 auto"
-           }} ></div>
-          <svg
-            width="100%"
-            height="100%"
-            viewBox="0 0 260 420"
-            preserveAspectRatio="xMidYMid meet"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            style={{ transform: "translateZ(50px)" }}
-          >
+         style={{
+         width: "min(260px, 85vw)",
+         perspective: "1000px",
+         margin: "0 auto"
+         }}
+         >
+        <svg
+        style={{
+        width: "100%",
+        height: "auto",
+        display: "block",
+        transform: "translateZ(50px)"
+        }}
+        viewBox="0 0 260 420"
+        preserveAspectRatio="xMidYMid meet"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        >
             {/* SVG CONTENT TETAP SAMA — TIDAK PERLU DIUBAH */}
             <defs>
               {/* Cup: wide at top (x: 58-202), narrow at bottom (x: 90-170) */}

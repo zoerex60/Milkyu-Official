@@ -123,6 +123,13 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
           }}
           className="relative w-full h-full"
         >
+          <div
+           style={{
+           width: "min(260px, 85vw)",
+           aspectRatio: "260 / 420",
+           perspective: "1000px",
+           margin: "0 auto"
+           }} ></div>
           <svg
             width="100%"
             height="100%"

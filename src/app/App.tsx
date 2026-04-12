@@ -67,7 +67,7 @@ function FlavorCarousel() {
         </button>
 
         {/* Cup animasi slide */}
-        <div style={{ overflow: "hidden", width: 240, height: 360 }}>
+        <div style={{ overflow: "hidden", width: "min(240px, 90vw)", aspectRatio: "260 / 420", display: "flex", alignItems: "center", justifyContent: "center"}} >
           <AnimatePresence mode="wait" custom={dir}>
             <motion.div
               key={active}

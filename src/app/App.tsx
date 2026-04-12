@@ -6,8 +6,8 @@ import { MilkyuMascot } from "./components/MilkyuMascot";
 const FLAVORS = [
   {
     flavor: "matcha" as const,
-    title: "Matcha Bliss",
-    description: "Perpaduan susu creamy dan saus sticky milk rasa matcha yang lembut.",
+    title: "Matcha Latte",
+    description: "Paduan matcha premium Jepang dengan susu segar pilihan. Segar, creamy, dan penuh karakter.",
     accent: "#5a9c5a",
   },
   {
@@ -18,15 +18,15 @@ const FLAVORS = [
   },
   {
     flavor: "chocolate" as const,
-    title: "Chocolate Indulgence",
-    description: "saus sticky milk Cokelat yang lembut dicampur dengan susu creamy",
+    title: "Chocolate Brown Sugar",
+    description: "Dark chocolate intensif dengan sentuhan brown sugar karamel. Kaya rasa, bikin nagih.",
     accent: "#8b5a3c",
   },
 ];
 
 function FlavorCarousel() {
-  const [active, setActive] = useState(1); // mulai dari tengah (strawberry)
-  const [dir, setDir] = useState(0); // 1 = kanan, -1 = kiri
+  const [active, setActive] = useState(1);
+  const [dir, setDir] = useState(0);
 
   const go = (next: number) => {
     setDir(next > active ? 1 : -1);
@@ -48,9 +48,8 @@ function FlavorCarousel() {
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1.25rem" }}>
 
       {/* Cup area dengan tombol kiri-kanan */}
-      <div style={{ position: "relative", width: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ position: "relative", width: "100%", maxWidth: "340px", display: "flex", alignItems: "center", justifyContent: "center" }}>
 
-        {/* Tombol kiri */}
         <button
           onClick={prev}
           style={{
@@ -66,8 +65,8 @@ function FlavorCarousel() {
           ‹
         </button>
 
-        {/* Cup animasi slide */}
-        <div style={{ overflow: "hidden", width: 240, height: 360 }}>
+        {/* Pembungkus animasi proporsional agar tidak memotong elemen SVG */}
+        <div style={{ overflow: "hidden", width: "100%", maxWidth: "240px", aspectRatio: "260/420", display: "flex", justifyContent: "center" }}>
           <AnimatePresence mode="wait" custom={dir}>
             <motion.div
               key={active}
@@ -77,7 +76,7 @@ function FlavorCarousel() {
               animate="center"
               exit="exit"
               transition={{ duration: 0.32, ease: "easeInOut" }}
-              style={{ display: "flex", justifyContent: "center" }}
+              style={{ width: "100%", display: "flex", justifyContent: "center" }}
             >
               <BobaCup
                 flavor={f.flavor}
@@ -88,7 +87,6 @@ function FlavorCarousel() {
           </AnimatePresence>
         </div>
 
-        {/* Tombol kanan */}
         <button
           onClick={next}
           style={{
@@ -105,28 +103,10 @@ function FlavorCarousel() {
         </button>
       </div>
 
-      {/* Nama & deskripsi */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={active + "-text"}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.22 }}
-          className="text-center"
-          style={{ maxWidth: 260, padding: "0 0.5rem" }}
-        >
-          <h3 style={{ color: f.accent, fontSize: "1.2rem", fontWeight: 700, marginBottom: "0.35rem" }}>
-            {f.title}
-          </h3>
-          <p style={{ color: "#777", fontSize: "0.83rem", lineHeight: 1.6 }}>
-            {f.description}
-          </p>
-        </motion.div>
-      </AnimatePresence>
+      {/* Nama & deskripsi (Tidak perlu AnimatePresence lagi karena BobaCup sudah menangani teksnya) */}
 
       {/* Dot indicators */}
-      <div style={{ display: "flex", gap: 8 }}>
+      <div style={{ display: "flex", gap: 8, marginTop: "0.5rem" }}>
         {FLAVORS.map((fl, i) => (
           <button
             key={i}
@@ -156,7 +136,6 @@ export default function App() {
   return (
     <div className="min-h-screen" style={{ background: "#f7f4ef", position: "relative", overflow: "hidden" }}>
 
-      {/* ── FLOATING BUBBLES + RESPONSIVE ── */}
       <style>{`
         @keyframes floatUp1 { 0% { transform: translateY(100vh) scale(0.8); opacity: 0; } 10% { opacity: 0.45; } 90% { opacity: 0.45; } 100% { transform: translateY(-120px) scale(1.1); opacity: 0; } }
         @keyframes floatUp2 { 0% { transform: translateY(100vh) scale(1); opacity: 0; } 10% { opacity: 0.35; } 90% { opacity: 0.35; } 100% { transform: translateY(-120px) scale(0.9); opacity: 0; } }
@@ -284,7 +263,7 @@ export default function App() {
           {/* Desktop: grid 3 kolom */}
           <div className="flavors-desktop items-start">
             {FLAVORS.map(({ flavor, title, description }, i) => (
-              <motion.div key={flavor} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: i * 0.15 }} viewport={{ once: true }} className="flex justify-center">
+              <motion.div key={flavor} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: i * 0.15 }} viewport={{ once: true }} className="flex justify-center w-full">
                 <BobaCup flavor={flavor} title={title} description={description} />
               </motion.div>
             ))}
@@ -372,7 +351,6 @@ export default function App() {
         </div>
       </footer>
 
-      {/* ── MASCOT ── */}
       <MilkyuMascot />
     </div>
   );

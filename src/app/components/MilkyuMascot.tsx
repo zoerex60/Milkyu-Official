@@ -54,7 +54,7 @@ export function MilkyuMascot() {
   const size = isMobile ? MOBILE : DESKTOP;
   const bubbleRight  = size.right;
   const bubbleBottom = size.bottom + size.h + 12;
-  const bubbleWidth  = isMobile ? 170 : 200;
+  const bubbleWidth = open ? (isMobile ? 170 : 200) : "max-content";
 
   return (
     <>

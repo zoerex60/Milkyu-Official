@@ -1,8 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 
-const MOBILE  = { w: 85,  h: 110, right: 16, bottom: 16, bubbleBottom: 142 };
-const DESKTOP = { w: 130, h: 170, right: 24, bottom: 24, bubbleBottom: 222 };
+const MOBILE  = { w: 85,  h: 110, right: 16, bottom: 16 };
+const DESKTOP = { w: 130, h: 170, right: 24, bottom: 24 };
+
+const BUBBLE_BG     = "rgba(245,245,245,1)";
+const BUBBLE_BORDER = "1px solid rgba(0,0,0,0.07)";
+const BUBBLE_SHADOW = "0 4px 16px rgba(0,0,0,0.10)";
 
 export function MilkyuMascot() {
   const [open, setOpen] = useState(false);
@@ -23,23 +27,14 @@ export function MilkyuMascot() {
     const handleMove = (e: MouseEvent) => {
       if (!mascotRef.current) return;
       const rect = mascotRef.current.getBoundingClientRect();
-
-      const eyeCenterX = rect.left + rect.width * 0.5;
-      const eyeCenterY = rect.top + rect.height * 0.25;
-
-      const dx = e.clientX - eyeCenterX;
-      const dy = e.clientY - eyeCenterY;
+      const dx = e.clientX - (rect.left + rect.width * 0.5);
+      const dy = e.clientY - (rect.top + rect.height * 0.25);
       const dist = Math.sqrt(dx * dx + dy * dy);
-
       const maxPupil = 3.5;
       const factor = Math.min(dist / 120, 1);
-      const nx = dist > 0 ? dx / dist : 0;
-      const ny = dist > 0 ? dy / dist : 0;
-
-      setPupilX(nx * maxPupil * factor);
-      setPupilY(ny * maxPupil * factor);
+      setPupilX(dist > 0 ? (dx / dist) * maxPupil * factor : 0);
+      setPupilY(dist > 0 ? (dy / dist) * maxPupil * factor : 0);
     };
-
     window.addEventListener("mousemove", handleMove);
     return () => window.removeEventListener("mousemove", handleMove);
   }, [isMobile]);
@@ -57,6 +52,9 @@ export function MilkyuMascot() {
   };
 
   const size = isMobile ? MOBILE : DESKTOP;
+  const bubbleRight  = size.right;
+  const bubbleBottom = size.bottom + size.h + 12;
+  const bubbleWidth  = isMobile ? 170 : 200;
 
   return (
     <>
@@ -77,154 +75,76 @@ export function MilkyuMascot() {
           0%, 100% { transform: rotate(-14deg); }
           50%       { transform: rotate(14deg); }
         }
-        @keyframes bubble-pop {
-          0%   { opacity: 0; transform: scale(0.6) translateY(12px); }
-          70%  { transform: scale(1.06) translateY(-2px); }
-          100% { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        @keyframes hint-pop {
-          0%   { opacity: 0; transform: scale(0.7) translateY(8px); }
-          70%  { transform: scale(1.05) translateY(-1px); }
-          100% { opacity: 1; transform: scale(1) translateY(0); }
-        }
         @keyframes hint-pulse {
           0%, 100% { box-shadow: 0 4px 16px rgba(0,0,0,0.10); }
-          50%       { box-shadow: 0 4px 24px rgba(0,0,0,0.18); }
+          50%       { box-shadow: 0 4px 22px rgba(0,0,0,0.18); }
         }
-        .milkyu-bounce {
-          animation: milkyu-bounce 2.4s ease-in-out infinite;
-        }
+        .milkyu-bounce   { animation: milkyu-bounce 2.4s ease-in-out infinite; }
         .milkyu-arm-wave {
           transform-origin: 104px 105px;
           animation: ${waving ? "milkyu-wave 0.95s ease-in-out" : "none"};
         }
-        .milkyu-tail {
-          transform-origin: 90px 118px;
-          animation: milkyu-tail 2s ease-in-out infinite;
-        }
-        .chat-bubble {
-          animation: bubble-pop 0.3s ease-out forwards;
-        }
-        .hint-bubble {
-          animation: hint-pop 0.4s ease-out forwards, hint-pulse 2s 0.4s ease-in-out infinite;
-        }
+        .milkyu-tail     { transform-origin: 90px 118px; animation: milkyu-tail 2s ease-in-out infinite; }
+        .hint-pulse      { animation: hint-pulse 2.2s ease-in-out infinite; }
       `}</style>
 
-      {/* ── HINT BUBBLE "klik aku" — warna sesuai chat bubble (putih, border abu tipis) ── */}
-      <AnimatePresence>
-        {!open && (
-          <motion.div
-            key="hint"
-            initial={{ opacity: 0, scale: 0.7, y: 8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.7, y: 8 }}
-            transition={{ delay: 1.8, duration: 0.35, ease: "easeOut" }}
-            style={{
-              position: "fixed",
-              right: size.right + (isMobile ? size.w - 10 : size.w + 4),
-              bottom: size.bottom + (isMobile ? size.h * 0.45 : size.h * 0.5),
-              zIndex: 9999,
-              pointerEvents: "none",
-            }}
-          >
-            <div
-              className="hint-bubble"
-              style={{
-                background: "#fff",
-                borderRadius: 14,
-                padding: isMobile ? "6px 11px" : "7px 13px",
-                boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
-                border: "1px solid rgba(0,0,0,0.07)",
-                whiteSpace: "nowrap",
-                position: "relative",
-              }}
-            >
-              <span style={{
-                fontSize: isMobile ? "0.7rem" : "0.75rem",
-                fontWeight: 700,
-                color: "#555",
-              }}>
-                Kyumii: "klik aku" 👆
-              </span>
-              {/* Panah ke kanan menuju maskot */}
-              <div style={{
-                position: "absolute",
-                right: -8,
-                top: "50%",
-                transform: "translateY(-50%)",
-                width: 0,
-                height: 0,
-                borderTop: "7px solid transparent",
-                borderBottom: "7px solid transparent",
-                borderLeft: "8px solid #fff",
-                filter: "drop-shadow(1px 0 1px rgba(0,0,0,0.08))",
-              }} />
-              <div style={{
-                position: "absolute",
-                right: -10,
-                top: "50%",
-                transform: "translateY(-50%)",
-                width: 0,
-                height: 0,
-                borderTop: "7px solid transparent",
-                borderBottom: "7px solid transparent",
-                borderLeft: "8px solid rgba(0,0,0,0.07)",
-                zIndex: -1,
-              }} />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* ── BUBBLE — 1 elemen, konten langsung swap tanpa animasi exit/enter ── */}
+      <div
+        style={{
+          position: "fixed",
+          right: bubbleRight,
+          bottom: bubbleBottom,
+          zIndex: 9999,
+          pointerEvents: open ? "auto" : "none",
+          width: bubbleWidth,
+        }}
+      >
+        <div
+          className={open ? undefined : "hint-pulse"}
+          style={{
+            background: BUBBLE_BG,
+            borderRadius: 16,
+            boxShadow: BUBBLE_SHADOW,
+            border: BUBBLE_BORDER,
+            padding: isMobile ? "10px 13px" : "12px 16px",
+            position: "relative",
+          }}
+        >
+          {/* Panah bawah menunjuk ke maskot */}
+          <div style={{
+            position: "absolute",
+            bottom: -10,
+            right: 28,
+            width: 0,
+            height: 0,
+            borderLeft: "10px solid transparent",
+            borderRight: "10px solid transparent",
+            borderTop: `10px solid ${BUBBLE_BG}`,
+            filter: "drop-shadow(0 2px 1px rgba(0,0,0,0.06))",
+          }} />
 
-      {/* Chat Bubble */}
-      <AnimatePresence>
-        {open && (
-          <div
-            className="chat-bubble"
-            style={{
-              position: "fixed",
-              right: size.right,
-              bottom: size.bubbleBottom,
-              zIndex: 9999,
-              pointerEvents: "auto",
-            }}
-          >
-            <div
-              style={{
-                background: "rgba(245,245,245,1)",
-                borderRadius: 18,
-                boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
-                padding: isMobile ? "12px 14px" : "14px 18px",
-                width: isMobile ? 170 : 200,
-                position: "relative",
-                border: "1px solid rgba(0,0,0,0.07)",
-              }}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: -10,
-                  right: 28,
-                  width: 0,
-                  height: 0,
-                  borderLeft: "10px solid transparent",
-                  borderRight: "10px solid transparent",
-                  borderTop: "10px solid rgba(245,245,245,1)",
-                  filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.06))",
-                }}
-              />
-              <p
-                style={{
-                  fontSize: isMobile ? "0.74rem" : "0.8rem",
-                  color: "#888",
-                  marginBottom: 9,
-                  fontWeight: 500,
-                }}
-              >
+          {!open ? (
+            /* Hint */
+            <span style={{
+              fontSize: isMobile ? "0.7rem" : "0.75rem",
+              fontWeight: 700,
+              color: "#555",
+              whiteSpace: "nowrap",
+            }}>
+              Kyumii: "klik aku" 👆
+            </span>
+          ) : (
+            /* Chat */
+            <>
+              <p style={{
+                fontSize: isMobile ? "0.74rem" : "0.8rem",
+                color: "#888",
+                marginBottom: 9,
+                fontWeight: 500,
+                lineHeight: 1.45,
+              }}>
                 Kyumii: "Klik untuk pesan ya kak! Terimakasih🥰"
               </p>
-
-              {/* WhatsApp */}
               <a
                 href="https://wa.me/6282246972263"
                 target="_blank"
@@ -251,7 +171,6 @@ export function MilkyuMascot() {
                 </svg>
                 Chat WhatsApp
               </a>
-
               <button
                 onClick={handleClick}
                 style={{
@@ -268,12 +187,12 @@ export function MilkyuMascot() {
               >
                 Tutup ✕
               </button>
-            </div>
-          </div>
-        )}
-      </AnimatePresence>
+            </>
+          )}
+        </div>
+      </div>
 
-      {/* Mascot Container */}
+      {/* ── MASCOT ── */}
       <div
         ref={mascotRef}
         onClick={handleClick}
@@ -291,36 +210,16 @@ export function MilkyuMascot() {
         }}
       >
         <div className="milkyu-bounce" style={{ width: "100%", height: "100%" }}>
-          <svg
-            width="100%"
-            height="100%"
-            viewBox="0 0 130 170"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            {/* Shadow */}
+          <svg width="100%" height="100%" viewBox="0 0 130 170" fill="none" xmlns="http://www.w3.org/2000/svg">
             <ellipse cx="65" cy="165" rx="30" ry="5" fill="rgba(0,0,0,0.09)" />
-
-            {/* TAIL */}
             <g className="milkyu-tail">
-              <path
-                d="M90 118 Q108 124 110 138 Q112 150 103 156"
-                stroke="#1a1a1a"
-                strokeWidth="3.5"
-                strokeLinecap="round"
-                fill="none"
-              />
+              <path d="M90 118 Q108 124 110 138 Q112 150 103 156" stroke="#1a1a1a" strokeWidth="3.5" strokeLinecap="round" fill="none" />
               <ellipse cx="102" cy="158" rx="7" ry="5.5" fill="#1a1a1a" />
             </g>
-
-            {/* BODY */}
             <ellipse cx="65" cy="122" rx="40" ry="42" fill="#f9f5ec" stroke="#1a1a1a" strokeWidth="2.5" />
-            {/* Body spots */}
             <ellipse cx="78" cy="108" rx="14" ry="11" fill="#1a1a1a" opacity="0.82" />
             <ellipse cx="42" cy="130" rx="8" ry="6" fill="#1a1a1a" opacity="0.72" />
             <ellipse cx="80" cy="138" rx="6" ry="5" fill="#1a1a1a" opacity="0.55" />
-
-            {/* APRON */}
             <g>
               <line x1="54" y1="100" x2="48" y2="86" stroke="#3a2e2a" strokeWidth="2.2" strokeLinecap="round" />
               <line x1="52" y1="97" x2="49" y2="89" stroke="#3a2e2a" strokeWidth="0.8" strokeDasharray="2 2" />
@@ -336,73 +235,43 @@ export function MilkyuMascot() {
               <rect x="46" y="130" width="6" height="12" rx="2" fill="none" stroke="#3a2e2a" strokeWidth="1" />
               <rect x="78" y="130" width="6" height="12" rx="2" fill="none" stroke="#3a2e2a" strokeWidth="1" />
             </g>
-
-            {/* LEGS + HOOVES */}
             <rect x="43" y="157" width="17" height="12" rx="8" fill="#f9f5ec" stroke="#1a1a1a" strokeWidth="2" />
             <rect x="70" y="157" width="17" height="12" rx="8" fill="#f9f5ec" stroke="#1a1a1a" strokeWidth="2" />
             <rect x="43" y="165" width="17" height="5" rx="3.5" fill="#1a1a1a" />
             <rect x="70" y="165" width="17" height="5" rx="3.5" fill="#1a1a1a" />
-
-            {/* LEFT ARM (static) */}
             <ellipse cx="25" cy="118" rx="10" ry="15" transform="rotate(15 25 118)" fill="#f9f5ec" stroke="#1a1a1a" strokeWidth="2" />
             <ellipse cx="22" cy="131" rx="7" ry="4.5" fill="#1a1a1a" />
-
-            {/* RIGHT ARM (waving) */}
             <g className="milkyu-arm-wave">
               <ellipse cx="104" cy="105" rx="10" ry="15" transform="rotate(-38 104 105)" fill="#f9f5ec" stroke="#1a1a1a" strokeWidth="2" />
               <ellipse cx="98" cy="85" rx="7" ry="4.5" fill="#1a1a1a" transform="rotate(-38 111 93)" />
             </g>
-
-            {/* NECK */}
             <rect x="52" y="74" width="26" height="20" rx="10" fill="#f9f5ec" stroke="#1a1a1a" strokeWidth="2.2" />
-
-            {/* HEAD */}
             <ellipse cx="65" cy="48" rx="36" ry="34" fill="#f9f5ec" stroke="#1a1a1a" strokeWidth="2.5" />
-            {/* Head spot */}
             <ellipse cx="52" cy="34" rx="13" ry="10" fill="#1a1a1a" opacity="0.8" />
-
-            {/* HORNS */}
             <path d="M46 17 L47 -8 L50 16 Z" fill="#f9f5ec" stroke="#1a1a1a" strokeWidth="2" strokeLinejoin="round" />
             <path d="M84 17 L83 -8 L80 16 Z" fill="#f9f5ec" stroke="#1a1a1a" strokeWidth="2" strokeLinejoin="round" />
-
-            {/* EARS */}
             <ellipse cx="18" cy="37" rx="13" ry="8" fill="#f9f5ec" stroke="#1a1a1a" strokeWidth="2" />
             <ellipse cx="18" cy="37" rx="9" ry="4" fill="#ffb3c6" opacity="0.65" />
             <ellipse cx="112" cy="37" rx="13" ry="8" fill="#f9f5ec" stroke="#1a1a1a" strokeWidth="2" />
             <ellipse cx="112" cy="37" rx="9" ry="4" fill="#ffb3c6" opacity="0.65" />
-
-            {/* SNOUT */}
             <ellipse cx="65" cy="60" rx="20" ry="14" fill="#ffd6c8" stroke="#1a1a1a" strokeWidth="1.8" />
             <ellipse cx="57" cy="61" rx="4" ry="3.2" fill="#1a1a1a" opacity="0.42" />
             <ellipse cx="73" cy="61" rx="4" ry="3.2" fill="#1a1a1a" opacity="0.42" />
-
-            {/* Smile */}
             <path d="M55 68 Q65 77 75 68" stroke="#c9897a" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-
-            {/* EYES */}
             <ellipse cx="48" cy="43" rx="8.5" ry="9.5" fill="#1a1a1a" />
             <ellipse cx="82" cy="43" rx="8.5" ry="9.5" fill="#1a1a1a" />
-
-            {/* PUPILS (tracking) */}
             <circle cx={48 + pupilX} cy={43 + pupilY} r="3.8" fill="#fff" />
             <circle cx={82 + pupilX} cy={43 + pupilY} r="3.8" fill="#fff" />
-
-            {/* Eye shine */}
             <circle cx={48 + pupilX + 1.2} cy={43 + pupilY - 1.2} r="1.2" fill="rgba(255,255,255,0.8)" />
             <circle cx={82 + pupilX + 1.2} cy={43 + pupilY - 1.2} r="1.2" fill="rgba(255,255,255,0.8)" />
-
-            {/* Eyelashes */}
             <line x1="42" y1="36" x2="39" y2="30" stroke="#1a1a1a" strokeWidth="1.8" strokeLinecap="round" />
             <line x1="46" y1="34" x2="44" y2="28" stroke="#1a1a1a" strokeWidth="1.8" strokeLinecap="round" />
             <line x1="88" y1="36" x2="91" y2="30" stroke="#1a1a1a" strokeWidth="1.8" strokeLinecap="round" />
             <line x1="84" y1="34" x2="86" y2="28" stroke="#1a1a1a" strokeWidth="1.8" strokeLinecap="round" />
-
-            {/* Blush */}
             <ellipse cx="36" cy="53" rx="9" ry="5" fill="#ffb3c6" opacity="0.42" />
             <ellipse cx="94" cy="53" rx="9" ry="5" fill="#ffb3c6" opacity="0.42" />
           </svg>
 
-          {/* Badge notif */}
           {!open && (
             <motion.div
               initial={{ opacity: 0, scale: 0 }}

@@ -64,7 +64,8 @@ function FlavorCarousel() {
         >
           ‹
         </button>
-
+        
+        
         {/* Pembungkus animasi proporsional agar tidak memotong elemen SVG */}
         <div style={{ overflow: "hidden", width: "100%", maxWidth: "240px", aspectRatio: "260/420", display: "flex", justifyContent: "center" }}>
           <AnimatePresence mode="wait" custom={dir}>
@@ -216,7 +217,7 @@ export default function App() {
         style={{ opacity: heroOpacity, scale: heroScale }}
         className="relative min-h-screen flex items-center justify-center px-5"
       >
-        <div className="max-w-4xl mx-auto text-center w-full" style={{ position: "relative", zIndex: 2, paddingTop: "5rem" }}>
+        <div className="max-w-4xl mx-auto text-center w-full" style={{ position: "relative", zIndex: 2, paddingTop: "1rem" }}>
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}

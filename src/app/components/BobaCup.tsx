@@ -1,5 +1,5 @@
 import { motion, useMotionValue, useSpring } from "motion/react";
-import { useState, useRef, useEffect, useId } from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface BobaCupProps {
   flavor: "matcha" | "strawberry" | "chocolate";
@@ -10,7 +10,7 @@ interface BobaCupProps {
 export function BobaCup({ flavor, title, description }: BobaCupProps) {
   const [isPressed, setIsPressed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const pressTimerRef = useRef<NodeJS.Timeout | null>(null);
+ const pressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const rotateX = useMotionValue(0);
   const rotateY = useMotionValue(0);
@@ -20,9 +20,14 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
   const springRotateY = useSpring(rotateY, { stiffness: 300, damping: 30 });
   const springScale = useSpring(scale, { stiffness: 200, damping: 25 });
  
-  // Generate ID unik untuk mencegah bentrok clipPath antara versi mobile dan desktop
-  const rawId = useId();
-  const uid = rawId.replace(/:/g, ""); 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+  const check = () => setIsMobile(window.innerWidth < 768);
+  check();
+  window.addEventListener("resize", check);
+  return () => window.removeEventListener("resize", check);
+  }, []);
 
   const flavorColors = {
     matcha: {
@@ -33,6 +38,7 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
       accent: "#5a9c5a",
     },
     strawberry: {
+      // Warna lebih muda / pastel
       drinkTop: "#e8606e",
       drinkMid: "#f0899a",
       drinkSwirl: "#f9c0c8",
@@ -67,10 +73,10 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
   const handlePressStart = () => {
     pressTimerRef.current = setTimeout(() => {
       setIsPressed(true);
-      scale.set(1.15); // Skala ditekan sedikit disesuaikan agar tidak terlalu besar
+      scale.set(1.8);
       rotateX.set(0);
       rotateY.set(0);
-    }, 300);
+    }, 500);
   };
 
   const handlePressEnd = () => {
@@ -83,11 +89,15 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
     return () => { if (pressTimerRef.current) clearTimeout(pressTimerRef.current); };
   }, []);
 
+  // Ukuran cup: lebih kecil di mobile
+  const cupW = isMobile ? 200 : 260;
+  const cupH = isMobile ? 323 : 420;
+
   return (
-    <div className="flex flex-col items-center gap-6" style={{ width: "100%", maxWidth: "260px", margin: "0 auto" }}>
+    <div className="flex flex-col items-center gap-6">
       <motion.div
-        className="relative cursor-pointer select-none w-full"
-        style={{ perspective: "1000px", aspectRatio: "260 / 420" }}
+        className="relative cursor-pointer select-none"
+        style={{ perspective: "1000px", width: cupW, height: cupH }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         onMouseEnter={() => setIsHovered(true)}
@@ -107,18 +117,19 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
           className="relative w-full h-full"
         >
           <svg
-            width="100%"
-            height="100%"
+            width={cupW}
+            height={cupH}
             viewBox="0 0 260 420"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             style={{ transform: "translateZ(50px)" }}
           >
             <defs>
-              <clipPath id={`cupClip-${uid}`}>
+              {/* Cup: wide at top (x: 58-202), narrow at bottom (x: 90-170) */}
+              <clipPath id={`cupClip-${flavor}`}>
                 <path d="M 58 130 L 90 358 Q 90 368 105 368 L 155 368 Q 170 368 170 358 L 202 130 Z" />
               </clipPath>
-              <filter id={`shadow-${uid}`}>
+              <filter id={`shadow-${flavor}`}>
                 <feGaussianBlur in="SourceAlpha" stdDeviation="6" />
                 <feOffset dx="2" dy="8" result="offsetblur" />
                 <feComponentTransfer>
@@ -129,11 +140,16 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
                   <feMergeNode in="SourceGraphic" />
                 </feMerge>
               </filter>
+              {/* Dome lid clip */}
+              <clipPath id={`domeClip-${flavor}`}>
+                <path d="M 54 117 Q 54 80 130 78 Q 206 80 206 117 L 206 128 L 54 128 Z" />
+              </clipPath>
             </defs>
 
-            <g filter={`url(#shadow-${uid})`}>
+            <g filter={`url(#shadow-${flavor})`}>
 
               {/* ── DOME LID ── */}
+              {/* Dome body */}
               <path
                 d="M 54 117 Q 54 76 130 74 Q 206 76 206 117 L 206 128 L 54 128 Z"
                 fill="rgba(210,228,240,0.92)"
@@ -141,6 +157,7 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
                 strokeWidth="1"
                 fillOpacity="0.1"
               />
+              {/* Dome highlight left */}
               <path
                 d="M 62 115 Q 64 88 110 82"
                 stroke="rgba(255,255,255,0.5)"
@@ -148,6 +165,7 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
                 strokeLinecap="round"
                 fill="none"
               />
+              {/* Dome highlight top */}
               <path
                 d="M 100 76 Q 130 74 160 76"
                 stroke="rgba(255,255,255,0.3)"
@@ -155,15 +173,19 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
                 strokeLinecap="round"
                 fill="none"
               />
+              {/* Dome base rim */}
               <rect x="54" y="118" width="152" height="10" rx="3" fill="rgba(190,215,232,0.88)" stroke="rgba(160,195,218,0.5)" strokeWidth="1" />
+              {/* Rim highlight */}
               <rect x="58" y="119" width="80" height="3" rx="1.5" fill="rgba(255,255,255,0.4)" />
 
               {/* ── CUP BODY – drink fill ── */}
-              <g clipPath={`url(#cupClip-${uid})`}>
+              <g clipPath={`url(#cupClip-${flavor})`}>
                 <rect x="55" y="130" width="150" height="90" fill={c.drinkTop} />
+                {/* Animated swirl layer 1 */}
                 <path d="M 58 175 Q 100 157 140 181 Q 172 199 205 171" stroke={c.drinkSwirl} strokeWidth="20" strokeLinecap="round" fill="none" opacity="0.55">
                   <animateTransform attributeName="transform" type="translate" values="0,0; -15,8; 0,0" dur="3s" repeatCount="indefinite" />
                 </path>
+                {/* Animated swirl layer 2 */}
                 <path d="M 58 195 Q 96 213 138 195 Q 170 179 205 201" stroke={c.drinkMid} strokeWidth="14" strokeLinecap="round" fill="none" opacity="0.45">
                   <animateTransform attributeName="transform" type="translate" values="0,0; 12,-6; 0,0" dur="4s" repeatCount="indefinite" />
                 </path>
@@ -175,6 +197,7 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
                 <rect x="150" y="163" width="24" height="20" rx="5" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.45)" strokeWidth="1" />
                 {/* Milk base */}
                 <rect x="55" y="218" width="150" height="160" fill={c.milkBase} />
+                {/* Animated milk swirl */}
                 <path d="M 60 220 Q 100 231 138 217 Q 168 206 208 223" stroke="rgba(255,255,255,0.75)" strokeWidth="12" strokeLinecap="round" fill="none">
                   <animateTransform attributeName="transform" type="translate" values="0,0; -10,4; 0,0" dur="5s" repeatCount="indefinite" />
                 </path>
@@ -187,7 +210,9 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
                 stroke="rgba(175,210,235,0.45)"
                 strokeWidth="1.5"
               />
+              {/* Left highlight */}
               <path d="M 62 137 L 92 351" stroke="rgba(255,255,255,0.42)" strokeWidth="6" strokeLinecap="round" />
+              {/* Right faint highlight */}
               <path d="M 198 137 L 168 351" stroke="rgba(255,255,255,0.14)" strokeWidth="3" strokeLinecap="round" />
 
               {/* ── WHITE BOTTOM BASE ── */}
@@ -230,12 +255,13 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="text-center w-full"
+        className="text-center"
+        style={{ maxWidth: isMobile ? "160px" : "280px" }}
       >
-        <h3 className="mb-1" style={{ color: c.accent, fontSize: "clamp(1.1rem, 4vw, 1.5rem)", fontWeight: 600 }}>
+        <h3 className="mb-1" style={{ color: c.accent, fontSize: isMobile ? "1.1rem" : "1.5rem", fontWeight: 600 }}>
           {title}
         </h3>
-        <p style={{ color: "#666", fontSize: "clamp(0.8rem, 3vw, 0.95rem)", lineHeight: 1.5 }}>{description}</p>
+        <p style={{ color: "#666", fontSize: isMobile ? "0.8rem" : "0.95rem", lineHeight: 1.5 }}>{description}</p>
       </motion.div>
     </div>
   );

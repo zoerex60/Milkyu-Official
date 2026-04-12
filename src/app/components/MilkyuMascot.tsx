@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 
-// Ukuran maskot berbeda antara mobile dan desktop
 const MOBILE  = { w: 85,  h: 110, right: 16, bottom: 16, bubbleBottom: 142 };
 const DESKTOP = { w: 130, h: 170, right: 24, bottom: 24, bubbleBottom: 222 };
 
@@ -13,7 +12,6 @@ export function MilkyuMascot() {
   const [isMobile, setIsMobile] = useState(false);
   const mascotRef = useRef<HTMLDivElement>(null);
 
-  // Deteksi ukuran layar
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -21,7 +19,6 @@ export function MilkyuMascot() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  // Pupil-only tracking — kepala TIDAK bergerak
   useEffect(() => {
     const handleMove = (e: MouseEvent) => {
       if (!mascotRef.current) return;
@@ -47,7 +44,6 @@ export function MilkyuMascot() {
     return () => window.removeEventListener("mousemove", handleMove);
   }, [isMobile]);
 
-  // Lambaian awal
   useEffect(() => {
     setWaving(true);
     const t = setTimeout(() => setWaving(false), 2000);
@@ -92,8 +88,8 @@ export function MilkyuMascot() {
           100% { opacity: 1; transform: scale(1) translateY(0); }
         }
         @keyframes hint-pulse {
-          0%, 100% { box-shadow: 0 4px 16px rgba(255,179,198,0.4); }
-          50%       { box-shadow: 0 4px 24px rgba(255,179,198,0.75); }
+          0%, 100% { box-shadow: 0 4px 16px rgba(0,0,0,0.10); }
+          50%       { box-shadow: 0 4px 24px rgba(0,0,0,0.18); }
         }
         .milkyu-bounce {
           animation: milkyu-bounce 2.4s ease-in-out infinite;
@@ -114,7 +110,7 @@ export function MilkyuMascot() {
         }
       `}</style>
 
-      {/* ── HINT BUBBLE "klik aku" — hanya tampil sebelum open ── */}
+      {/* ── HINT BUBBLE "klik aku" — warna sesuai chat bubble (putih, border abu tipis) ── */}
       <AnimatePresence>
         {!open && (
           <motion.div
@@ -137,8 +133,8 @@ export function MilkyuMascot() {
                 background: "#fff",
                 borderRadius: 14,
                 padding: isMobile ? "6px 11px" : "7px 13px",
-                boxShadow: "0 4px 16px rgba(255,179,198,0.4)",
-                border: "1.5px solid #ffb3c6",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
+                border: "1px solid rgba(0,0,0,0.07)",
                 whiteSpace: "nowrap",
                 position: "relative",
               }}
@@ -146,7 +142,7 @@ export function MilkyuMascot() {
               <span style={{
                 fontSize: isMobile ? "0.7rem" : "0.75rem",
                 fontWeight: 700,
-                color: "#c9697a",
+                color: "#555",
               }}>
                 Kyumii: "klik aku" 👆
               </span>
@@ -161,7 +157,7 @@ export function MilkyuMascot() {
                 borderTop: "7px solid transparent",
                 borderBottom: "7px solid transparent",
                 borderLeft: "8px solid #fff",
-                filter: "drop-shadow(1px 0 1px rgba(255,179,198,0.4))",
+                filter: "drop-shadow(1px 0 1px rgba(0,0,0,0.08))",
               }} />
               <div style={{
                 position: "absolute",
@@ -172,7 +168,7 @@ export function MilkyuMascot() {
                 height: 0,
                 borderTop: "7px solid transparent",
                 borderBottom: "7px solid transparent",
-                borderLeft: "8px solid #ffb3c6",
+                borderLeft: "8px solid rgba(0,0,0,0.07)",
                 zIndex: -1,
               }} />
             </div>
@@ -195,9 +191,9 @@ export function MilkyuMascot() {
           >
             <div
               style={{
-                background: "#fff",
+                background: "rgba(245,245,245,1)",
                 borderRadius: 18,
-                boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
                 padding: isMobile ? "12px 14px" : "14px 18px",
                 width: isMobile ? 170 : 200,
                 position: "relative",
@@ -213,8 +209,8 @@ export function MilkyuMascot() {
                   height: 0,
                   borderLeft: "10px solid transparent",
                   borderRight: "10px solid transparent",
-                  borderTop: "10px solid #fff",
-                  filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.08))",
+                  borderTop: "10px solid rgba(245,245,245,1)",
+                  filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.06))",
                 }}
               />
               <p
@@ -318,15 +314,7 @@ export function MilkyuMascot() {
             </g>
 
             {/* BODY */}
-            <ellipse
-              cx="65"
-              cy="122"
-              rx="40"
-              ry="42"
-              fill="#f9f5ec"
-              stroke="#1a1a1a"
-              strokeWidth="2.5"
-            />
+            <ellipse cx="65" cy="122" rx="40" ry="42" fill="#f9f5ec" stroke="#1a1a1a" strokeWidth="2.5" />
             {/* Body spots */}
             <ellipse cx="78" cy="108" rx="14" ry="11" fill="#1a1a1a" opacity="0.82" />
             <ellipse cx="42" cy="130" rx="8" ry="6" fill="#1a1a1a" opacity="0.72" />
@@ -334,34 +322,17 @@ export function MilkyuMascot() {
 
             {/* APRON */}
             <g>
-              {/* Strap kiri */}
               <line x1="54" y1="100" x2="48" y2="86" stroke="#3a2e2a" strokeWidth="2.2" strokeLinecap="round" />
               <line x1="52" y1="97" x2="49" y2="89" stroke="#3a2e2a" strokeWidth="0.8" strokeDasharray="2 2" />
-
-              {/* Strap kanan */}
               <line x1="76" y1="100" x2="82" y2="86" stroke="#3a2e2a" strokeWidth="2.2" strokeLinecap="round" />
               <line x1="78" y1="97" x2="81" y2="89" stroke="#3a2e2a" strokeWidth="0.8" strokeDasharray="2 2" />
-
-              {/* Top apron */}
               <rect x="50" y="86" width="30" height="23" rx="7" fill="#f0e8c8" stroke="#3a2e2a" strokeWidth="1.8" />
               <rect x="54" y="88" width="23" height="23" rx="6" fill="none" stroke="#3a2e2a" strokeWidth="0.8" strokeDasharray="2 2" />
-
-              {/* Body apron */}
               <rect x="40" y="106" width="50" height="46" rx="12" fill="#f0e8c8" stroke="#3a2e2a" strokeWidth="2" />
               <rect x="43" y="109" width="44" height="40" rx="9" fill="none" stroke="#3a2e2a" strokeWidth="0.9" strokeDasharray="3 3" />
-
-              {/* Kantong */}
               <rect x="46" y="128" width="38" height="20" rx="6" fill="#f0e8c8" stroke="#3a2e2a" strokeWidth="1.5" />
-
-              {/* Teks */}
-              <text x="65" y="124" textAnchor="middle" fontSize="8" fontWeight="800" fill="#2f2f2f" fontFamily="Georgia, serif">
-                Milk
-              </text>
-              <text x="65" y="139" textAnchor="middle" fontSize="8" fontWeight="800" fill="#2f2f2f" fontFamily="Georgia, serif">
-                Yu
-              </text>
-
-              {/* Detail samping */}
+              <text x="65" y="124" textAnchor="middle" fontSize="8" fontWeight="800" fill="#2f2f2f" fontFamily="Georgia, serif">Milk</text>
+              <text x="65" y="139" textAnchor="middle" fontSize="8" fontWeight="800" fill="#2f2f2f" fontFamily="Georgia, serif">Yu</text>
               <rect x="46" y="130" width="6" height="12" rx="2" fill="none" stroke="#3a2e2a" strokeWidth="1" />
               <rect x="78" y="130" width="6" height="12" rx="2" fill="none" stroke="#3a2e2a" strokeWidth="1" />
             </g>
@@ -373,53 +344,20 @@ export function MilkyuMascot() {
             <rect x="70" y="165" width="17" height="5" rx="3.5" fill="#1a1a1a" />
 
             {/* LEFT ARM (static) */}
-            <ellipse
-              cx="25"
-              cy="118"
-              rx="10"
-              ry="15"
-              transform="rotate(15 25 118)"
-              fill="#f9f5ec"
-              stroke="#1a1a1a"
-              strokeWidth="2"
-            />
+            <ellipse cx="25" cy="118" rx="10" ry="15" transform="rotate(15 25 118)" fill="#f9f5ec" stroke="#1a1a1a" strokeWidth="2" />
             <ellipse cx="22" cy="131" rx="7" ry="4.5" fill="#1a1a1a" />
 
             {/* RIGHT ARM (waving) */}
             <g className="milkyu-arm-wave">
-              <ellipse
-                cx="104"
-                cy="105"
-                rx="10"
-                ry="15"
-                transform="rotate(-38 104 105)"
-                fill="#f9f5ec"
-                stroke="#1a1a1a"
-                strokeWidth="2"
-              />
-              <ellipse
-                cx="98"
-                cy="85"
-                rx="7"
-                ry="4.5"
-                fill="#1a1a1a"
-                transform="rotate(-38 111 93)"
-              />
+              <ellipse cx="104" cy="105" rx="10" ry="15" transform="rotate(-38 104 105)" fill="#f9f5ec" stroke="#1a1a1a" strokeWidth="2" />
+              <ellipse cx="98" cy="85" rx="7" ry="4.5" fill="#1a1a1a" transform="rotate(-38 111 93)" />
             </g>
 
             {/* NECK */}
             <rect x="52" y="74" width="26" height="20" rx="10" fill="#f9f5ec" stroke="#1a1a1a" strokeWidth="2.2" />
 
             {/* HEAD */}
-            <ellipse
-              cx="65"
-              cy="48"
-              rx="36"
-              ry="34"
-              fill="#f9f5ec"
-              stroke="#1a1a1a"
-              strokeWidth="2.5"
-            />
+            <ellipse cx="65" cy="48" rx="36" ry="34" fill="#f9f5ec" stroke="#1a1a1a" strokeWidth="2.5" />
             {/* Head spot */}
             <ellipse cx="52" cy="34" rx="13" ry="10" fill="#1a1a1a" opacity="0.8" />
 
@@ -474,7 +412,7 @@ export function MilkyuMascot() {
                 position: "absolute",
                 top: 0,
                 right: 0,
-                background: "#ffb3c6",
+                background: "#1a1a1a",
                 borderRadius: "50%",
                 width: isMobile ? 18 : 22,
                 height: isMobile ? 18 : 22,
@@ -483,8 +421,8 @@ export function MilkyuMascot() {
                 justifyContent: "center",
                 fontSize: isMobile ? "10px" : "12px",
                 fontWeight: 700,
-                color: "#c9697a",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                color: "#fff",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.20)",
               }}
             >
               !

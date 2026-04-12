@@ -45,7 +45,44 @@ function FlavorCarousel() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1.25rem" }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
+
+      {/* Flavor name badge — tampil di mobile atas carousel */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={active}
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 8 }}
+          transition={{ duration: 0.25 }}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            background: `${f.accent}18`,
+            border: `1.5px solid ${f.accent}40`,
+            borderRadius: 999,
+            padding: "5px 16px",
+          }}
+        >
+          <span style={{
+            width: 8,
+            height: 8,
+            borderRadius: "50%",
+            background: f.accent,
+            display: "inline-block",
+            flexShrink: 0,
+          }} />
+          <span style={{
+            fontSize: "0.8rem",
+            fontWeight: 700,
+            color: f.accent,
+            letterSpacing: "0.04em",
+          }}>
+            {f.title}
+          </span>
+        </motion.div>
+      </AnimatePresence>
 
       {/* Cup area dengan tombol kiri-kanan */}
       <div style={{ position: "relative", width: "100%", maxWidth: "340px", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -65,7 +102,6 @@ function FlavorCarousel() {
           ‹
         </button>
 
-        {/* Pembungkus animasi proporsional agar tidak memotong elemen SVG */}
         <div style={{ overflow: "hidden", width: "100%", maxWidth: "240px", aspectRatio: "260/420", display: "flex", justifyContent: "center" }}>
           <AnimatePresence mode="wait" custom={dir}>
             <motion.div
@@ -103,10 +139,8 @@ function FlavorCarousel() {
         </button>
       </div>
 
-      {/* Nama & deskripsi (Tidak perlu AnimatePresence lagi karena BobaCup sudah menangani teksnya) */}
-
       {/* Dot indicators */}
-      <div style={{ display: "flex", gap: 8, marginTop: "0.5rem" }}>
+      <div style={{ display: "flex", gap: 8 }}>
         {FLAVORS.map((fl, i) => (
           <button
             key={i}
@@ -167,6 +201,9 @@ export default function App() {
         .nav-mobile      { display: flex; }
         .nav-desktop     { display: none; }
 
+        /* Hero mobile: padding-top lebih kecil supaya konten naik ke atas */
+        .hero-inner { padding-top: 4.5rem; }
+
         @media (min-width: 768px) {
           .hero-logo-wrap  { width: 160px; height: 160px; }
           .hero-logo-img   { width: 110px; height: 110px; }
@@ -175,6 +212,7 @@ export default function App() {
           .info-grid       { grid-template-columns: repeat(2, 1fr); max-width: 480px; margin: 0 auto 2.5rem; }
           .nav-mobile      { display: none !important; }
           .nav-desktop     { display: flex !important; }
+          .hero-inner      { padding-top: 5rem; }
         }
       `}</style>
 
@@ -216,7 +254,7 @@ export default function App() {
         style={{ opacity: heroOpacity, scale: heroScale }}
         className="relative min-h-screen flex items-center justify-center px-5"
       >
-        <div className="max-w-4xl mx-auto text-center w-full" style={{ position: "relative", zIndex: 2, paddingTop: "5rem" }}>
+        <div className="max-w-4xl mx-auto text-center w-full hero-inner" style={{ position: "relative", zIndex: 2 }}>
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}

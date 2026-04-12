@@ -113,11 +113,11 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
         }
         @keyframes ice-slide-r {
           0%, 100% { transform: translateX(0px); }
-          50%       { transform: translateX(5px); }
+          50%       { transform: translateX(3px); }
         }
         @keyframes ice-slide-l {
           0%, 100% { transform: translateX(0px); }
-          50%       { transform: translateX(-5px); }
+          50%       { transform: translateX(-3px); }
         }
         .ice-shimmer  { animation: ice-shimmer 2.8s ease-in-out infinite; }
         .ice-slide-r  { animation: ice-slide-r 3.5s ease-in-out infinite; }

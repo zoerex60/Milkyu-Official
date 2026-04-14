@@ -120,7 +120,17 @@ function FlavorCarousel() {
           />
         ))}
       </div>
-    </div>
+    {/* --- TAMBAHKAN KODE INI UNTUK TEXT MOBILE --- */}
+      <div className="md:hidden" style={{ textAlign: "center", marginTop: "1.5rem", padding: "0 1rem" }}>
+        <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.5rem" }}>
+          {f.title}
+        </h3>
+        <p style={{ fontSize: "0.85rem", color: "#666", lineHeight: 1.5 }}>
+          {f.description}
+        </p>
+      </div>
+
+    </div> // Penutup container utama FlavorCarousel
   );
 }
 
@@ -272,6 +282,7 @@ export default function App() {
           </div>
         </div>
       </section>
+      
 
       {/* ── COOKIE ── */}
       <section id="cookie" className="px-5" style={{ paddingTop: "4rem", paddingBottom: "5rem", background: "#fff8f2", position: "relative", zIndex: 2 }}>

@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { motion, useScroll, useTransform, AnimatePresence } from "motion/react";
 import { BobaCup } from "./components/BobaCup";
+import { Cookie } from "./components/Cookie";
 import { MilkyuMascot } from "./components/MilkyuMascot";
 
 const FLAVORS = [
   {
     flavor: "matcha" as const,
     title: "Matcha Bliss",
-    description: "Susu creamy yang menyatu dalam tekstur saus sticky milk macha yang lembut.",
+    description: "Susu creamy yang menyatu dalam tekstur saus sticky milk matcha yang lembut.",
     accent: "#5a9c5a",
   },
   {
@@ -39,52 +40,15 @@ function FlavorCarousel() {
   const f = FLAVORS[active];
 
   const variants = {
-    enter: (d: number) => ({ x: d > 0 ? 280 : -280, opacity: 0 }),
+    enter:  (d: number) => ({ x: d > 0 ?  280 : -280, opacity: 0 }),
     center: { x: 0, opacity: 1 },
-    exit: (d: number) => ({ x: d > 0 ? -280 : 280, opacity: 0 }),
+    exit:   (d: number) => ({ x: d > 0 ? -280 :  280, opacity: 0 }),
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1.25rem" }}>
 
-      {/* Flavor name badge — tampil di mobile atas carousel */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={active}
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 8 }}
-          transition={{ duration: 0.25 }}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            background: `${f.accent}18`,
-            border: `1.5px solid ${f.accent}40`,
-            borderRadius: 999,
-            padding: "5px 16px",
-          }}
-        >
-          <span style={{
-            width: 8,
-            height: 8,
-            borderRadius: "50%",
-            background: f.accent,
-            display: "inline-block",
-            flexShrink: 0,
-          }} />
-          <span style={{
-            fontSize: "0.8rem",
-            fontWeight: 700,
-            color: f.accent,
-            letterSpacing: "0.04em",
-          }}>
-            {f.title}
-          </span>
-        </motion.div>
-      </AnimatePresence>
-
-      {/* Cup area dengan tombol kiri-kanan */}
+      {/* Cup area with nav buttons */}
       <div style={{ position: "relative", width: "100%", maxWidth: "340px", display: "flex", alignItems: "center", justifyContent: "center" }}>
 
         <button
@@ -95,8 +59,7 @@ function FlavorCarousel() {
             background: "#fff", border: "1.5px solid rgba(0,0,0,0.08)",
             boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", fontSize: "1.3rem", color: "#555",
-            lineHeight: 1,
+            cursor: "pointer", fontSize: "1.3rem", color: "#555", lineHeight: 1,
           }}
         >
           ‹
@@ -131,8 +94,7 @@ function FlavorCarousel() {
             background: "#fff", border: "1.5px solid rgba(0,0,0,0.08)",
             boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", fontSize: "1.3rem", color: "#555",
-            lineHeight: 1,
+            cursor: "pointer", fontSize: "1.3rem", color: "#555", lineHeight: 1,
           }}
         >
           ›
@@ -140,7 +102,7 @@ function FlavorCarousel() {
       </div>
 
       {/* Dot indicators */}
-      <div style={{ display: "flex", gap: 8 }}>
+      <div style={{ display: "flex", gap: 8, marginTop: "0.5rem" }}>
         {FLAVORS.map((fl, i) => (
           <button
             key={i}
@@ -165,44 +127,41 @@ function FlavorCarousel() {
 export default function App() {
   const { scrollYProgress } = useScroll();
   const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
-  const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
+  const heroScale   = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
 
   return (
     <div className="min-h-screen" style={{ background: "#f7f4ef", position: "relative", overflow: "hidden" }}>
 
       <style>{`
         @keyframes floatUp1 { 0% { transform: translateY(100vh) scale(0.8); opacity: 0; } 10% { opacity: 0.45; } 90% { opacity: 0.45; } 100% { transform: translateY(-120px) scale(1.1); opacity: 0; } }
-        @keyframes floatUp2 { 0% { transform: translateY(100vh) scale(1); opacity: 0; } 10% { opacity: 0.35; } 90% { opacity: 0.35; } 100% { transform: translateY(-120px) scale(0.9); opacity: 0; } }
-        @keyframes floatUp3 { 0% { transform: translateY(100vh) scale(0.9); opacity: 0; } 10% { opacity: 0.4; } 90% { opacity: 0.4; } 100% { transform: translateY(-120px) scale(1); opacity: 0; } }
+        @keyframes floatUp2 { 0% { transform: translateY(100vh) scale(1);   opacity: 0; } 10% { opacity: 0.35; } 90% { opacity: 0.35; } 100% { transform: translateY(-120px) scale(0.9); opacity: 0; } }
+        @keyframes floatUp3 { 0% { transform: translateY(100vh) scale(0.9); opacity: 0; } 10% { opacity: 0.4;  } 90% { opacity: 0.4;  } 100% { transform: translateY(-120px) scale(1);   opacity: 0; } }
         .bubble { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; overflow: hidden; }
         .bubble::before { content: ''; position: absolute; top: 18%; left: 20%; width: 35%; height: 30%; border-radius: 50%; background: rgba(255,255,255,0.55); filter: blur(1px); transform: rotate(-30deg); }
         .bubble::after  { content: ''; position: absolute; top: 10%; left: 55%; width: 18%; height: 14%; border-radius: 50%; background: rgba(255,255,255,0.35); filter: blur(0.5px); }
-        .b1  { width:18px;  height:18px;  left:5%;   background:#ffb3c6; animation: floatUp1 9s  2s   infinite ease-in; }
-        .b2  { width:26px;  height:26px;  left:12%;  background:#a8d5a8; animation: floatUp2 12s 0s   infinite ease-in; }
-        .b3  { width:14px;  height:14px;  left:20%;  background:#c9a584; animation: floatUp3 8s  4s   infinite ease-in; }
-        .b4  { width:30px;  height:30px;  left:30%;  background:#ffb3c6; animation: floatUp1 14s 1s   infinite ease-in; }
-        .b5  { width:20px;  height:20px;  left:40%;  background:#a8d5a8; animation: floatUp2 10s 6s   infinite ease-in; }
-        .b6  { width:16px;  height:16px;  left:50%;  background:#ff85a8; animation: floatUp3 11s 3s   infinite ease-in; }
-        .b7  { width:24px;  height:24px;  left:60%;  background:#7cb67c; animation: floatUp1 13s 0.5s infinite ease-in; }
-        .b8  { width:12px;  height:12px;  left:70%;  background:#c9a584; animation: floatUp2 7s  5s   infinite ease-in; }
-        .b9  { width:28px;  height:28px;  left:80%;  background:#ffb3c6; animation: floatUp3 15s 2s   infinite ease-in; }
-        .b10 { width:18px;  height:18px;  left:88%;  background:#a8d5a8; animation: floatUp1 9s  7s   infinite ease-in; }
-        .b11 { width:22px;  height:22px;  left:25%;  background:#ff85a8; animation: floatUp2 11s 8s   infinite ease-in; }
-        .b12 { width:15px;  height:15px;  left:55%;  background:#7cb67c; animation: floatUp3 10s 1.5s infinite ease-in; }
-        .b13 { width:20px;  height:20px;  left:75%;  background:#c9a584; animation: floatUp1 12s 3.5s infinite ease-in; }
-        .b14 { width:25px;  height:25px;  left:92%;  background:#ffb3c6; animation: floatUp2 14s 4.5s infinite ease-in; }
-        .b15 { width:13px;  height:13px;  left:45%;  background:#a8d5a8; animation: floatUp3 8s  9s   infinite ease-in; }
+        .b1  { width:18px; height:18px; left:5%;  background:#ffb3c6; animation: floatUp1 9s  2s   infinite ease-in; }
+        .b2  { width:26px; height:26px; left:12%; background:#a8d5a8; animation: floatUp2 12s 0s   infinite ease-in; }
+        .b3  { width:14px; height:14px; left:20%; background:#c9a584; animation: floatUp3 8s  4s   infinite ease-in; }
+        .b4  { width:30px; height:30px; left:30%; background:#ffb3c6; animation: floatUp1 14s 1s   infinite ease-in; }
+        .b5  { width:20px; height:20px; left:40%; background:#a8d5a8; animation: floatUp2 10s 6s   infinite ease-in; }
+        .b6  { width:16px; height:16px; left:50%; background:#ff85a8; animation: floatUp3 11s 3s   infinite ease-in; }
+        .b7  { width:24px; height:24px; left:60%; background:#7cb67c; animation: floatUp1 13s 0.5s infinite ease-in; }
+        .b8  { width:12px; height:12px; left:70%; background:#c9a584; animation: floatUp2 7s  5s   infinite ease-in; }
+        .b9  { width:28px; height:28px; left:80%; background:#ffb3c6; animation: floatUp3 15s 2s   infinite ease-in; }
+        .b10 { width:18px; height:18px; left:88%; background:#a8d5a8; animation: floatUp1 9s  7s   infinite ease-in; }
+        .b11 { width:22px; height:22px; left:25%; background:#ff85a8; animation: floatUp2 11s 8s   infinite ease-in; }
+        .b12 { width:15px; height:15px; left:55%; background:#7cb67c; animation: floatUp3 10s 1.5s infinite ease-in; }
+        .b13 { width:20px; height:20px; left:75%; background:#c9a584; animation: floatUp1 12s 3.5s infinite ease-in; }
+        .b14 { width:25px; height:25px; left:92%; background:#ffb3c6; animation: floatUp2 14s 4.5s infinite ease-in; }
+        .b15 { width:13px; height:13px; left:45%; background:#a8d5a8; animation: floatUp3 8s  9s   infinite ease-in; }
 
         .hero-logo-wrap  { width: 120px; height: 120px; }
-        .hero-logo-img   { width: 80px; height: 80px; }
+        .hero-logo-img   { width: 80px;  height: 80px;  }
         .flavors-desktop { display: none; }
         .flavors-mobile  { display: block; }
         .info-grid       { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 360px; margin: 0 auto 2rem; }
         .nav-mobile      { display: flex; }
         .nav-desktop     { display: none; }
-
-        /* Hero mobile: padding-top lebih kecil supaya konten naik ke atas */
-        .hero-inner { padding-top: 4.5rem; }
 
         @media (min-width: 768px) {
           .hero-logo-wrap  { width: 160px; height: 160px; }
@@ -212,7 +171,6 @@ export default function App() {
           .info-grid       { grid-template-columns: repeat(2, 1fr); max-width: 480px; margin: 0 auto 2.5rem; }
           .nav-mobile      { display: none !important; }
           .nav-desktop     { display: flex !important; }
-          .hero-inner      { padding-top: 5rem; }
         }
       `}</style>
 
@@ -239,6 +197,7 @@ export default function App() {
           </div>
           <nav className="nav-desktop items-center gap-8" style={{ fontSize: "0.9rem", color: "#666", fontWeight: 500 }}>
             <a href="#flavors" style={{ textDecoration: "none", color: "#666" }} className="hover:opacity-60 transition-opacity">Varian Rasa</a>
+            <a href="#cookie" style={{ textDecoration: "none", color: "#666" }} className="hover:opacity-60 transition-opacity">Cemilan</a>
             <a href="#about"   style={{ textDecoration: "none", color: "#666" }} className="hover:opacity-60 transition-opacity">Tentang</a>
             <a href="#contact" style={{ textDecoration: "none", color: "#666" }} className="hover:opacity-60 transition-opacity">Kontak</a>
           </nav>
@@ -254,7 +213,7 @@ export default function App() {
         style={{ opacity: heroOpacity, scale: heroScale }}
         className="relative min-h-screen flex items-center justify-center px-5"
       >
-        <div className="max-w-4xl mx-auto text-center w-full hero-inner" style={{ position: "relative", zIndex: 2 }}>
+        <div className="max-w-4xl mx-auto text-center w-full" style={{ position: "relative", zIndex: 2, paddingTop: "5rem" }}>
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -298,7 +257,7 @@ export default function App() {
             <h2 style={{ fontSize: "clamp(1.75rem, 4vw, 3rem)", fontWeight: 800, color: "#1a1a1a", letterSpacing: "-0.02em" }}>Tiga Varian Favorit</h2>
           </motion.div>
 
-          {/* Desktop: grid 3 kolom */}
+          {/* Desktop: 3-column grid */}
           <div className="flavors-desktop items-start">
             {FLAVORS.map(({ flavor, title, description }, i) => (
               <motion.div key={flavor} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: i * 0.15 }} viewport={{ once: true }} className="flex justify-center w-full">
@@ -307,9 +266,111 @@ export default function App() {
             ))}
           </div>
 
-          {/* Mobile: carousel geser kiri-kanan */}
+          {/* Mobile: swipe carousel */}
           <div className="flavors-mobile">
             <FlavorCarousel />
+          </div>
+        </div>
+      </section>
+
+      {/* ── COOKIE ── */}
+      <section id="cookie" className="px-5" style={{ paddingTop: "4rem", paddingBottom: "5rem", background: "#fff8f2", position: "relative", zIndex: 2 }}>
+        <div className="max-w-6xl mx-auto">
+
+          {/* Section header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center"
+            style={{ marginBottom: "2.5rem" }}
+          >
+            <p style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.12em", color: "#8b1515", textTransform: "uppercase", marginBottom: "0.6rem" }}>Cemilan Spesial</p>
+            <h2 style={{ fontSize: "clamp(1.75rem, 4vw, 3rem)", fontWeight: 800, color: "#1a1a1a", letterSpacing: "-0.02em" }}>Cookies Andalan Kami</h2>
+            <p style={{ fontSize: "clamp(0.85rem, 2vw, 1rem)", color: "#888", maxWidth: "460px", margin: "0.75rem auto 0", lineHeight: 1.7 }}>
+              Padukan sticky milk favoritmu dengan soft cookies kami — lembut di luar, creamy di dalam.
+            </p>
+          </motion.div>
+
+          {/* Cookie display — centred, max-width constrained for nice proportions */}
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "3rem", flexWrap: "wrap" }}>
+            <motion.div
+              initial={{ opacity: 0, y: 40, scale: 0.92 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.75, ease: "easeOut" }}
+              viewport={{ once: true }}
+              style={{ width: "100%", maxWidth: "240px" }}
+            >
+              <Cookie
+                title="Red Velvet Cream Cheese"
+                description="Cookie red velvet yang lembut dengan isian cream cheese berkualitas."
+              />
+            </motion.div>
+
+            {/* Pairing suggestion card */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              viewport={{ once: true }}
+              style={{
+                background: "rgba(139,21,21,0.05)",
+                border: "1.5px solid rgba(139,21,21,0.12)",
+                borderRadius: "20px",
+                padding: "1.75rem 1.5rem",
+                maxWidth: "280px",
+                width: "100%",
+              }}
+            >
+              <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#8b1515", marginBottom: "0.75rem" }}>
+                Padukan Dengan
+              </p>
+              {[
+                { emoji: "🍵", name: "Matcha Bliss",           note: "Keseimbangan rasa pahit & manis" },
+                { emoji: "🍫", name: "Chocolate Indulgence",  note: "Rasa coklat yang intens" },
+                { emoji: "🍓", name: "Strawberry Dream",       note: "Segar & playful" },
+              ].map(({ emoji, name, note }) => (
+                <motion.div
+                  key={name}
+                  whileHover={{ x: 4 }}
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "0.75rem",
+                    padding: "0.65rem 0",
+                    borderBottom: "1px solid rgba(0,0,0,0.06)",
+                  }}
+                >
+                  <span style={{ fontSize: "1.4rem", lineHeight: 1 }}>{emoji}</span>
+                  <div>
+                    <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "#1a1a1a", marginBottom: "0.15rem" }}>{name}</p>
+                    <p style={{ fontSize: "0.75rem", color: "#999", lineHeight: 1.4 }}>{note}</p>
+                  </div>
+                </motion.div>
+              ))}
+
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => document.getElementById("flavors")?.scrollIntoView({ behavior: "smooth" })}
+                style={{
+                  marginTop: "1.2rem",
+                  width: "100%",
+                  padding: "0.65rem",
+                  borderRadius: "999px",
+                  background: "#8b1515",
+                  color: "#fff",
+                  fontSize: "0.82rem",
+                  fontWeight: 600,
+                  border: "none",
+                  cursor: "pointer",
+                  letterSpacing: "0.02em",
+                }}
+              >
+                Pilih Minumanmu →
+              </motion.button>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -342,7 +403,7 @@ export default function App() {
             <div className="info-grid">
               {[
                 { icon: "🕐", label: "Jam Buka", value: "08.00 – 22.00" },
-                { icon: "📍", label: "Lokasi", value: "Daan mogot" },
+                { icon: "📍", label: "Lokasi",   value: "Daan mogot"  },
               ].map(({ icon, label, value }) => (
                 <motion.div key={label} whileHover={{ scale: 1.04, background: "rgba(255,255,255,0.1)" }} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "16px", padding: "1.1rem 0.75rem", transition: "background 0.2s", display: "flex", flexDirection: "column", alignItems: "center" }}>
                   <div style={{ fontSize: "1.5rem", marginBottom: "0.35rem" }}>{icon}</div>

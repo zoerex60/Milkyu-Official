@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useId } from "react";
 import { motion, useScroll, useTransform, AnimatePresence } from "motion/react";
 import { BobaCup } from "./components/BobaCup";
-import { Cookie } from "./components/Cookie";
+import { Cookie, CookieCarousel } from "./components/Cookie";
 import { MilkyuMascot } from "./components/MilkyuMascot";
 
 const FLAVORS = [
@@ -45,26 +45,19 @@ function FlavorCarousel() {
     exit:   (d: number) => ({ x: d > 0 ? -280 :  280, opacity: 0 }),
   };
 
+  const navBtn: React.CSSProperties = {
+    position: "absolute", zIndex: 10,
+    width: 44, height: 44, borderRadius: "50%",
+    background: "#fff", border: "1.5px solid rgba(0,0,0,0.08)",
+    boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    cursor: "pointer", fontSize: "1.3rem", color: "#555", lineHeight: 1,
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1.25rem" }}>
-
-      {/* Cup area with nav buttons */}
       <div style={{ position: "relative", width: "100%", maxWidth: "340px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-
-        <button
-          onClick={prev}
-          style={{
-            position: "absolute", left: 0, zIndex: 10,
-            width: 44, height: 44, borderRadius: "50%",
-            background: "#fff", border: "1.5px solid rgba(0,0,0,0.08)",
-            boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", fontSize: "1.3rem", color: "#555", lineHeight: 1,
-          }}
-        >
-          ‹
-        </button>
-
+        <button onClick={prev} style={{ ...navBtn, left: 0 }}>‹</button>
         <div style={{ overflow: "hidden", width: "100%", maxWidth: "240px", aspectRatio: "260/420", display: "flex", justifyContent: "center" }}>
           <AnimatePresence mode="wait" custom={dir}>
             <motion.div
@@ -77,62 +70,830 @@ function FlavorCarousel() {
               transition={{ duration: 0.32, ease: "easeInOut" }}
               style={{ width: "100%", display: "flex", justifyContent: "center" }}
             >
-              <BobaCup
-                flavor={f.flavor}
-                title={f.title}
-                description={f.description}
-              />
+              <BobaCup flavor={f.flavor} title={f.title} description={f.description} />
             </motion.div>
           </AnimatePresence>
         </div>
-
-        <button
-          onClick={next}
-          style={{
-            position: "absolute", right: 0, zIndex: 10,
-            width: 44, height: 44, borderRadius: "50%",
-            background: "#fff", border: "1.5px solid rgba(0,0,0,0.08)",
-            boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", fontSize: "1.3rem", color: "#555", lineHeight: 1,
-          }}
-        >
-          ›
-        </button>
+        <button onClick={next} style={{ ...navBtn, right: 0 }}>›</button>
       </div>
-
-      {/* Dot indicators */}
       <div style={{ display: "flex", gap: 8, marginTop: "0.5rem" }}>
         {FLAVORS.map((fl, i) => (
           <button
             key={i}
             onClick={() => go(i)}
             style={{
-              width: i === active ? 24 : 8,
-              height: 8,
+              width: i === active ? 24 : 8, height: 8,
               borderRadius: 999,
               background: i === active ? fl.accent : "rgba(0,0,0,0.14)",
-              border: "none",
-              cursor: "pointer",
-              padding: 0,
+              border: "none", cursor: "pointer", padding: 0,
               transition: "all 0.3s ease",
             }}
           />
         ))}
       </div>
-    {/* --- TAMBAHKAN KODE INI UNTUK TEXT MOBILE --- */}
       <div className="md:hidden" style={{ textAlign: "center", marginTop: "1.5rem", padding: "0 1rem" }}>
-        <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.5rem" }}>
-          {f.title}
-        </h3>
-        <p style={{ fontSize: "0.85rem", color: "#666", lineHeight: 1.5 }}>
-          {f.description}
-        </p>
+        <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.5rem" }}>{f.title}</h3>
+        <p style={{ fontSize: "0.85rem", color: "#666", lineHeight: 1.5 }}>{f.description}</p>
       </div>
-
-    </div> // Penutup container utama FlavorCarousel
+    </div>
   );
 }
+
+// ─────────────────────────────────────────────
+//  Build Your Milkyu
+// ─────────────────────────────────────────────
+
+const BUILD_SAUCES = [
+  { id: "chocolate",  label: "Chocolate Indulgence", fill: "#5c2a0c", accent: "#8b5a3c" },
+  { id: "matcha",     label: "Matcha Bliss",         fill: "#4a7c4e", accent: "#5a9c5a" },
+  { id: "strawberry", label: "Strawberry Dream",     fill: "#e8606e", accent: "#e8607a" },
+];
+
+const BUILD_COOKIES = [
+  { id: "original",   label: "Original",   bodyColor: "#D08830", chipColor: "#1C0800" },
+  { id: "red-velvet", label: "Red Velvet", bodyColor: "#D83030", chipColor: "#F2E5C8" },
+];
+
+// Steps: 0=empty, 1=ice, 2=milk, 3=sauce, 4=cookie
+const BYM_STEPS = [
+  { label: "Mulai dengan gelas kosong", emoji: "🥤" },
+  { label: "Tambahkan Es Batu",          emoji: "🧊" },
+  { label: "Tambahkan Susu Plain",       emoji: "🥛" },
+  { label: "Pilih Sticky Sauce",         emoji: "🍫" },
+  { label: "Tambahkan Cookie (opsional)",emoji: "🍪" },
+];
+
+interface BuildCupPreviewProps {
+  step: number;
+  sauce: string | null;
+  cookie: string | null;
+  bymUid: string;
+}
+
+function BuildCupPreview({ step, sauce, cookie, bymUid }: BuildCupPreviewProps) {
+  const sd = BUILD_SAUCES.find(s => s.id === sauce);
+  const cd = BUILD_COOKIES.find(c => c.id === cookie);
+
+  const showIce  = step >= 1;
+  const showMilk = step >= 2;
+  const showSauce = step >= 3 && sd;
+  const showCookie = step >= 4 && cd;
+
+  const MINI_COOKIES = [
+    { cx: 95,  cy: 148, delay: "0s",    dur: "1.85s" },
+    { cx: 130, cy: 143, delay: "0.65s", dur: "2.1s"  },
+    { cx: 163, cy: 149, delay: "1.2s",  dur: "1.7s"  },
+  ];
+
+  // Ice cubes inside the cup
+  const ICE_CUBES = [
+    { x: 68,  y: 195, w: 32, h: 28 },
+    { x: 102, y: 190, w: 36, h: 30 },
+    { x: 140, y: 196, w: 32, h: 27 },
+    { x: 172, y: 193, w: 26, h: 28 },
+  ];
+
+  return (
+    <svg width="100%" height="100%" viewBox="0 0 260 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <clipPath id={`bymClip-${bymUid}`}>
+          <path d="M 58 130 L 90 318 Q 90 328 105 328 L 155 328 Q 170 328 170 318 L 202 130 Z" />
+        </clipPath>
+        <radialGradient id={`iceGrad-${bymUid}`} cx="35%" cy="30%" r="65%">
+          <stop offset="0%" stopColor="rgba(255,255,255,0.95)" />
+          <stop offset="60%" stopColor="rgba(220,240,255,0.65)" />
+          <stop offset="100%" stopColor="rgba(180,220,245,0.40)" />
+        </radialGradient>
+        <filter id={`iceGlow-${bymUid}`} x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="2.5" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+
+      {/* Dome lid */}
+      <path d="M 54 117 Q 54 76 130 74 Q 206 76 206 117 L 206 128 L 54 128 Z" fill="rgba(210,228,240,0.92)" stroke="rgba(170,200,220,0.65)" strokeWidth="1" />
+      <path d="M 62 115 Q 64 88 110 82" stroke="rgba(255,255,255,0.5)" strokeWidth="5" strokeLinecap="round" fill="none" />
+      <rect x="54" y="118" width="152" height="10" rx="3" fill="rgba(190,215,232,0.88)" />
+      <rect x="58" y="119" width="80" height="3" rx="1.5" fill="rgba(255,255,255,0.4)" />
+
+      <g clipPath={`url(#bymClip-${bymUid})`}>
+        {/* Empty cup base — always show glass body */}
+        <rect x="55" y="130" width="150" height="200" fill={showMilk ? "#f8f3ee" : "rgba(210,235,250,0.18)"} />
+
+        {/* Milk sheen */}
+        {showMilk && (
+          <path d="M 62 218 Q 100 230 138 216 Q 168 205 205 222" stroke="rgba(255,255,255,0.65)" strokeWidth="8" strokeLinecap="round" fill="none" />
+        )}
+
+        {/* Ice cubes — appear at step 1 */}
+        {showIce && ICE_CUBES.map((ice, i) => (
+          <g key={i} className="bym-ice-cube" style={{ animationDelay: `${i * 0.15}s` }}>
+            <rect x={ice.x - 3} y={ice.y - 3} width={ice.w + 6} height={ice.h + 6} rx="9"
+              fill="rgba(168,213,245,0.25)" filter={`url(#iceGlow-${bymUid})`} />
+            <rect x={ice.x} y={ice.y} width={ice.w} height={ice.h} rx="7"
+              fill={`url(#iceGrad-${bymUid})`} stroke="rgba(255,255,255,0.88)" strokeWidth="1.5" />
+            <rect x={ice.x + 4} y={ice.y + 5} width={Math.max(ice.w - 14, 6)} height={3} rx="1.5"
+              fill="rgba(255,255,255,0.82)" />
+            <line x1={ice.x + ice.w - 6} y1={ice.y + 5} x2={ice.x + ice.w - 6} y2={ice.y + ice.h - 6}
+              stroke="rgba(255,255,255,0.30)" strokeWidth="2" strokeLinecap="round" />
+          </g>
+        ))}
+
+        {/* Sauce drip layer — step 3 */}
+        {showSauce && sd && (
+          <g key={sauce} className="bym-sauce-group">
+            <path
+              d="M 55,130 L 205,130 L 205,182 Q 194,170 181,185 Q 168,200 154,183 Q 140,166 128,183 Q 115,200 101,184 Q 87,168 73,185 Q 62,197 55,185 Z"
+              fill={sd.fill}
+            />
+            <ellipse cx="94"  cy="193" rx="7.5" ry="13" fill={sd.fill} />
+            <ellipse cx="130" cy="190" rx="5.5" ry="10" fill={sd.fill} />
+            <ellipse cx="164" cy="192" rx="6.5" ry="12" fill={sd.fill} />
+            <path d="M 68,140 Q 100,132 132,140 Q 160,147 192,138" stroke="rgba(255,255,255,0.22)" strokeWidth="5" strokeLinecap="round" fill="none" />
+          </g>
+        )}
+
+        {/* Falling cookies — step 4 */}
+        {showCookie && cd && MINI_COOKIES.map((fc, i) => (
+          <g
+            key={`${cookie}-${i}`}
+            className="bym-cookie-fall"
+            style={{
+              animationDuration: fc.dur,
+              animationDelay: fc.delay,
+              transformOrigin: `${fc.cx}px ${fc.cy}px`,
+            }}
+          >
+            <ellipse cx={fc.cx} cy={fc.cy} rx="13" ry="9" fill={cd.bodyColor} />
+            <ellipse cx={fc.cx - 3} cy={fc.cy - 1} rx="3.5" ry="2.2" fill={cd.chipColor} />
+            <ellipse cx={fc.cx + 4} cy={fc.cy + 2} rx="3"   ry="2"   fill={cd.chipColor} />
+            <ellipse cx={fc.cx - 3} cy={fc.cy - 2} rx="2.8" ry="1.5" fill="rgba(255,255,255,0.38)" />
+          </g>
+        ))}
+      </g>
+
+      {/* Cup glass overlay */}
+      <path d="M 58 130 L 90 318 Q 90 328 105 328 L 155 328 Q 170 328 170 318 L 202 130 Z" fill="rgba(230,244,255,0.10)" stroke="rgba(175,210,235,0.45)" strokeWidth="1.5" />
+      <path d="M 62 137 L 92 311" stroke="rgba(255,255,255,0.42)" strokeWidth="6" strokeLinecap="round" />
+      <path d="M 198 137 L 168 311" stroke="rgba(255,255,255,0.14)" strokeWidth="3" strokeLinecap="round" />
+
+      {/* White bottom base */}
+      <path d="M 92 291 L 90 318 Q 90 328 105 328 L 155 328 Q 170 328 170 318 L 168 291 Z" fill="rgba(245,244,240,0.97)" stroke="rgba(200,198,192,0.35)" strokeWidth="1" />
+
+      {/* Straw */}
+      <rect x="129" y="30" width="9" height="175" rx="4.5" fill="rgba(0,0,0,0.18)" transform="rotate(7, 133, 110)" />
+      <rect x="127" y="28" width="9" height="175" rx="4.5" fill="#111111" transform="rotate(7, 131, 109)" />
+      <rect x="128.5" y="30" width="2.5" height="155" rx="1.25" fill="rgba(255,255,255,0.18)" transform="rotate(7, 129.5, 101)" />
+    </svg>
+  );
+}
+
+function BuildYourMilkyu() {
+  const rawId = useId();
+  const bymUid = rawId.replace(/:/g, "bym");
+
+  // step 0 = empty, 1 = ice added, 2 = milk added, 3 = sauce picked, 4 = cookie picked
+  const [step, setStep] = useState(0);
+  const [sauce,  setSauce]  = useState<string | null>(null);
+  const [cookie, setCookie] = useState<string | null>(null);
+
+  const selectedSauce  = BUILD_SAUCES.find(s => s.id === sauce);
+  const selectedCookie = BUILD_COOKIES.find(c => c.id === cookie);
+
+  const stepNumStyle: React.CSSProperties = {
+    width: 28, height: 28, borderRadius: "50%",
+    background: "#8b5a3c", color: "#fff",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    fontSize: "0.8rem", fontWeight: 700, flexShrink: 0,
+  };
+
+  const stepNumDoneStyle: React.CSSProperties = {
+    ...stepNumStyle,
+    background: "#5a9c5a",
+  };
+
+  const stepNumLockedStyle: React.CSSProperties = {
+    ...stepNumStyle,
+    background: "rgba(0,0,0,0.15)",
+  };
+
+  const isComplete = step >= 3 && sauce;
+
+  const handleReset = () => {
+    setStep(0);
+    setSauce(null);
+    setCookie(null);
+  };
+
+  return (
+    <section
+      id="build"
+      className="px-5"
+      style={{ paddingTop: "4rem", paddingBottom: "5rem", background: "#f0ebe4", position: "relative", zIndex: 2 }}
+    >
+      <div className="max-w-6xl mx-auto">
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+          className="text-center"
+          style={{ marginBottom: "3rem" }}
+        >
+          <p style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.12em", color: "#8b5a3c", textTransform: "uppercase", marginBottom: "0.6rem" }}>
+            Kreasi Favoritmu
+          </p>
+          <h2 style={{ fontSize: "clamp(1.75rem, 4vw, 3rem)", fontWeight: 800, color: "#1a1a1a", letterSpacing: "-0.02em" }}>
+            Build Your Milkyu
+          </h2>
+          <p style={{ fontSize: "clamp(0.85rem, 2vw, 1rem)", color: "#888", maxWidth: "420px", margin: "0.75rem auto 0", lineHeight: 1.7 }}>
+            Racik sendiri minumanmu langkah demi langkah — dan lihat hasilnya langsung!
+          </p>
+        </motion.div>
+
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "center", gap: "3rem" }}>
+
+          {/* Cup preview */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.88 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            viewport={{ once: true }}
+            style={{ width: "100%", maxWidth: "190px", flexShrink: 0 }}
+          >
+            <BuildCupPreview step={step} sauce={sauce} cookie={cookie} bymUid={bymUid} />
+          </motion.div>
+
+          {/* Steps panel */}
+          <div style={{ flex: 1, minWidth: "280px", maxWidth: "460px", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+
+            {/* Step 1 — Empty cup (auto-done, just show) */}
+            <motion.div
+              initial={{ opacity: 0, x: 32 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              viewport={{ once: true }}
+              style={{
+                background: step >= 0 ? "#fff" : "rgba(255,255,255,0.5)",
+                borderRadius: 14,
+                padding: "1rem 1.25rem",
+                border: step === 0 ? "2px solid #8b5a3c" : "2px solid rgba(90,156,90,0.5)",
+                transition: "all 0.3s ease",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: step === 0 ? "0.85rem" : 0 }}>
+                <div style={step > 0 ? stepNumDoneStyle : stepNumStyle}>
+                  {step > 0 ? "✓" : "1"}
+                </div>
+                <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "#1a1a1a", margin: 0 }}>
+                  🧊 Tambahkan Es Batu
+                </h3>
+              </div>
+              {step === 0 && (
+                <motion.button
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => setStep(1)}
+                  style={{
+                    padding: "0.6rem 1.5rem", borderRadius: 999,
+                    background: "#8b5a3c", color: "#fff",
+                    fontSize: "0.88rem", fontWeight: 600, cursor: "pointer",
+                    border: "none", marginTop: "0.25rem",
+                  }}
+                >
+                  Mulai bikin →
+                </motion.button>
+              )}
+            </motion.div>
+
+            {/* Step 2 — Add Ice */}
+            <motion.div
+              initial={{ opacity: 0, x: 32 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.15 }}
+              viewport={{ once: true }}
+              style={{
+                background: step >= 1 ? "#fff" : "rgba(255,255,255,0.4)",
+                borderRadius: 14,
+                padding: "1rem 1.25rem",
+                border: step === 1 ? "2px solid #8b5a3c" : step > 1 ? "2px solid rgba(90,156,90,0.5)" : "2px solid rgba(0,0,0,0.08)",
+                opacity: step < 1 ? 0.5 : 1,
+                transition: "all 0.3s ease",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: step === 1 ? "0.85rem" : 0 }}>
+                <div style={step > 1 ? stepNumDoneStyle : step === 1 ? stepNumStyle : stepNumLockedStyle}>
+                  {step > 1 ? "✓" : "2"}
+                </div>
+                <h3 style={{ fontSize: "1rem", fontWeight: 700, color: step >= 1 ? "#1a1a1a" : "#999", margin: 0 }}>
+                  🥛 Tuangkan Susu Plain
+                </h3>
+              </div>
+              {step === 1 && (
+                <motion.button
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => setStep(2)}
+                  style={{
+                    padding: "0.6rem 1.5rem", borderRadius: 999,
+                    background: "#8b5a3c", color: "#fff",
+                    fontSize: "0.88rem", fontWeight: 600, cursor: "pointer",
+                    border: "none", marginTop: "0.25rem",
+                  }}
+                >
+                  Masukkan es batu →
+                </motion.button>
+              )}
+            </motion.div>
+
+            {/* Step 3 — Add Milk */}
+            <motion.div
+              initial={{ opacity: 0, x: 32 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              viewport={{ once: true }}
+              style={{
+                background: step >= 2 ? "#fff" : "rgba(255,255,255,0.4)",
+                borderRadius: 14,
+                padding: "1rem 1.25rem",
+                border: step === 2 ? "2px solid #8b5a3c" : step > 2 ? "2px solid rgba(90,156,90,0.5)" : "2px solid rgba(0,0,0,0.08)",
+                opacity: step < 2 ? 0.5 : 1,
+                transition: "all 0.3s ease",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: step === 2 ? "0.85rem" : 0 }}>
+                <div style={step > 2 ? stepNumDoneStyle : step === 2 ? stepNumStyle : stepNumLockedStyle}>
+                  {step > 2 ? "✓" : "3"}
+                </div>
+                <h3 style={{ fontSize: "1rem", fontWeight: 700, color: step >= 2 ? "#1a1a1a" : "#999", margin: 0 }}>
+                  🥛 Tuangkan Susu Plain
+                </h3>
+              </div>
+              {step === 2 && (
+                <motion.button
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => setStep(3)}
+                  style={{
+                    padding: "0.6rem 1.5rem", borderRadius: 999,
+                    background: "#8b5a3c", color: "#fff",
+                    fontSize: "0.88rem", fontWeight: 600, cursor: "pointer",
+                    border: "none", marginTop: "0.25rem",
+                  }}
+                >
+                  Tuang susu →
+                </motion.button>
+              )}
+            </motion.div>
+
+            {/* Step 4 — Sticky Sauce */}
+            <motion.div
+              initial={{ opacity: 0, x: 32 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.25 }}
+              viewport={{ once: true }}
+              style={{
+                background: step >= 3 ? "#fff" : "rgba(255,255,255,0.4)",
+                borderRadius: 14,
+                padding: "1rem 1.25rem",
+                border: step === 3 ? "2px solid #8b5a3c" : step > 3 ? "2px solid rgba(90,156,90,0.5)" : "2px solid rgba(0,0,0,0.08)",
+                opacity: step < 3 ? 0.5 : 1,
+                transition: "all 0.3s ease",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: step >= 3 ? "0.85rem" : 0 }}>
+                <div style={step > 3 ? stepNumDoneStyle : step === 3 ? stepNumStyle : stepNumLockedStyle}>
+                  {step > 3 ? "✓" : "4"}
+                </div>
+                <h3 style={{ fontSize: "1rem", fontWeight: 700, color: step >= 3 ? "#1a1a1a" : "#999", margin: 0 }}>
+                  🍫 Pilih Sticky Sauce
+                </h3>
+              </div>
+              {step >= 3 && (
+                <>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.65rem" }}>
+                    {BUILD_SAUCES.map(s => (
+                      <motion.button
+                        key={s.id}
+                        whileHover={{ scale: 1.04 }}
+                        whileTap={{ scale: 0.96 }}
+                        onClick={() => {
+                          setSauce(sauce === s.id ? null : s.id);
+                          if (step === 3) setStep(4);
+                        }}
+                        style={{
+                          padding: "0.6rem 1.2rem", borderRadius: 999,
+                          fontSize: "0.85rem", fontWeight: 600, cursor: "pointer",
+                          border: `2px solid ${sauce === s.id ? s.accent : "rgba(0,0,0,0.12)"}`,
+                          background: sauce === s.id ? s.accent : "#fff",
+                          color: sauce === s.id ? "#fff" : "#555",
+                          transition: "all 0.22s ease",
+                        }}
+                      >
+                        {s.label}
+                      </motion.button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </motion.div>
+
+            {/* Summary card */}
+            <AnimatePresence>
+              {isComplete && (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 8 }}
+                  transition={{ duration: 0.35 }}
+                  style={{
+                    background: "#fff", borderRadius: 16,
+                    padding: "1rem 1.25rem",
+                    border: "1.5px solid rgba(139,90,60,0.18)",
+                    boxShadow: "0 4px 18px rgba(139,90,60,0.08)",
+                  }}
+                >
+                  <p style={{ fontSize: "0.78rem", fontWeight: 600, color: "#5a9c5a", marginBottom: "0.4rem", margin: "0 0 0.4rem" }}>
+                    Kreasi kamu siap! 🎉
+                  </p>
+                  <p style={{ fontSize: "0.92rem", color: "#333", fontWeight: 500, lineHeight: 1.65, margin: "0 0 0.85rem" }}>
+                    Plain Milk + Es Batu
+                    {selectedSauce  && ` + ${selectedSauce.label}`}
+                    {selectedCookie && ` + ${selectedCookie.label} Cookie`}
+                  </p>
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={handleReset}
+                    style={{
+                      padding: "0.5rem 1.2rem", borderRadius: 999,
+                      background: "rgba(0,0,0,0.06)", border: "none",
+                      fontSize: "0.8rem", color: "#888", cursor: "pointer", fontWeight: 500,
+                    }}
+                  >
+                    ↩ Ulangi
+                  </motion.button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────
+//  Build Your Cookie — Cookie Builder
+// ─────────────────────────────────────────────
+
+const BYC_BASES = [
+  { id: "original",   label: "Brown Sugar Butter", bodyColor: "#D08830", chipColor: "#1C0800", accent: "#7A4800" },
+  { id: "red-velvet", label: "Red Velvet",          bodyColor: "#D83030", chipColor: "#F2E5C8", accent: "#8B1515" },
+];
+
+const BYC_DRIZZLES = [
+  { id: "chocolate", label: "Chocolate Drizzle", color: "#3b1f0e" },
+  { id: "strawberry",   label: "Strawberry Drizzle",   color: "#e8606e" },
+  { id: "matcha",    label: "Matcha Drizzle",     color: "#4a7c4e" },
+];
+
+// Cookie path
+const COOKIE_PATH_BYC = "M 107,69 Q 130,63 152,72 Q 174,80 193,95 Q 211,109 215,132 Q 219,155 215,179 Q 211,202 193,217 Q 174,231 152,239 Q 130,246 109,238 Q 87,230 68,216 Q 49,202 45,179 Q 40,155 47,133 Q 54,111 69,93 Q 83,74 107,69 Z";
+
+const CHIPS_BYC = [
+  { cx: 128, cy: 88,  rx: 8.5, ry: 5.5, a: 5   },
+  { cx: 90,  cy: 101, rx: 7.5, ry: 4.5, a: -12 },
+  { cx: 170, cy: 97,  rx: 9,   ry: 5.5, a: 15  },
+  { cx: 108, cy: 123, rx: 9,   ry: 5.5, a: -5  },
+  { cx: 160, cy: 131, rx: 8.5, ry: 5,   a: 8   },
+  { cx: 70,  cy: 139, rx: 8,   ry: 5,   a: -20 },
+  { cx: 190, cy: 144, rx: 8,   ry: 5,   a: 22  },
+  { cx: 132, cy: 154, rx: 9,   ry: 6,   a: 0   },
+  { cx: 84,  cy: 187, rx: 9,   ry: 5.5, a: -15 },
+  { cx: 132, cy: 182, rx: 9,   ry: 5.5, a: 0   },
+  { cx: 178, cy: 187, rx: 8.5, ry: 5.5, a: 14  },
+  { cx: 130, cy: 230, rx: 9,   ry: 5.5, a: 0   },
+];
+
+interface CookiePreviewProps {
+  base: string | null;
+  drizzle: string | null;
+  extras: string[];
+  uid: string;
+}
+
+function CookiePreview({ base, drizzle, extras, uid }: CookiePreviewProps) {
+  const bd = BYC_BASES.find(b => b.id === base);
+
+  if (!bd) {
+    // Show empty plate / placeholder
+    return (
+      <svg width="100%" height="100%" viewBox="0 0 260 290" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="130" cy="175" rx="96" ry="14" fill="rgba(0,0,0,0.07)" />
+        <circle cx="130" cy="155" r="76" fill="rgba(0,0,0,0.04)" stroke="rgba(0,0,0,0.08)" strokeWidth="2" strokeDasharray="6 5" />
+        <text x="130" y="148" textAnchor="middle" fontSize="28" opacity="0.25">🍪</text>
+        <text x="130" y="172" textAnchor="middle" fontSize="11" fill="rgba(0,0,0,0.3)" fontWeight="600">Pilih base dulu</text>
+      </svg>
+    );
+  }
+
+  const isOriginal = base === "original";
+  const c = isOriginal
+    ? { g0: "#F2C26A", g1: "#D08830", g2: "#9A5A18", g3: "#5A300A", spec: "rgba(255,215,130,0.55)", edge: "rgba(55,22,0,0.38)", crackRgb: "85,38,0", chipBody: "#1C0800", chipRim: "#3A1A00", chipGloss: "rgba(255,215,150,0.22)", shadowFlood: "rgba(80,35,0,0.25)" }
+    : { g0: "#D83030", g1: "#8C0F0F", g2: "#510505", g3: "#250202", spec: "rgba(230,80,80,0.48)", edge: "rgba(50,0,0,0.42)", crackRgb: "65,5,5", chipBody: "#F2E5C8", chipRim: "#FFF5E0", chipGloss: "rgba(255,255,235,0.60)", shadowFlood: "rgba(80,0,0,0.30)" };
+
+  const drizzleColor = BYC_DRIZZLES.find(d => d.id === drizzle)?.color;
+
+
+  return (
+    <svg width="100%" height="100%" viewBox="0 0 260 290" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ overflow: "visible" }}>
+      <defs>
+        <radialGradient id={`byc-base-${uid}`} cx="33%" cy="26%" r="74%">
+          <stop offset="0%"   stopColor={c.g0} />
+          <stop offset="28%"  stopColor={c.g1} />
+          <stop offset="68%"  stopColor={c.g2} />
+          <stop offset="100%" stopColor={c.g3} />
+        </radialGradient>
+        <radialGradient id={`byc-spec-${uid}`} cx="30%" cy="23%" r="42%">
+          <stop offset="0%"   stopColor={c.spec} />
+          <stop offset="100%" stopColor="transparent" />
+        </radialGradient>
+        <radialGradient id={`byc-vig-${uid}`} cx="50%" cy="50%" r="50%">
+          <stop offset="60%"  stopColor="transparent" />
+          <stop offset="100%" stopColor={c.edge} />
+        </radialGradient>
+        <filter id={`byc-shadow-${uid}`} x="-28%" y="-28%" width="156%" height="156%">
+          <feDropShadow dx="0" dy="18" stdDeviation="20" floodColor={c.shadowFlood} />
+        </filter>
+        <filter id={`byc-chipBlur-${uid}`} x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="2" />
+        </filter>
+        <clipPath id={`byc-clip-${uid}`}>
+          <path d={COOKIE_PATH_BYC} />
+        </clipPath>
+      </defs>
+
+      {/* Cookie body */}
+      <path d={COOKIE_PATH_BYC} fill={`url(#byc-base-${uid})`} filter={`url(#byc-shadow-${uid})`} />
+      <path d={COOKIE_PATH_BYC} fill={`url(#byc-spec-${uid})`} />
+
+      {/* Surface cracks */}
+      <g clipPath={`url(#byc-clip-${uid})`}>
+        <path d="M 58,88 Q 95,72 132,82 T 202,78"             stroke={`rgba(${c.crackRgb},0.16)`} strokeWidth="1.8" fill="none" strokeLinecap="round" />
+        <path d="M 42,138 Q 88,122 132,136 T 222,132"          stroke={`rgba(${c.crackRgb},0.20)`} strokeWidth="2"   fill="none" strokeLinecap="round" />
+        <path d="M 44,183 Q 90,167 136,177 T 216,172"          stroke={`rgba(${c.crackRgb},0.20)`} strokeWidth="1.8" fill="none" strokeLinecap="round" />
+        <path d="M 68,231 Q 106,217 142,227 T 192,222"         stroke={`rgba(${c.crackRgb},0.12)`} strokeWidth="1.4" fill="none" strokeLinecap="round" />
+      </g>
+
+      {/* Chips */}
+      <g clipPath={`url(#byc-clip-${uid})`}>
+        {CHIPS_BYC.map((chip, i) => (
+          <g key={i} transform={`rotate(${chip.a},${chip.cx},${chip.cy})`}>
+            <ellipse cx={chip.cx + 2} cy={chip.cy + 2.5} rx={chip.rx * 0.92} ry={chip.ry * 0.88} fill="rgba(0,0,0,0.28)" filter={`url(#byc-chipBlur-${uid})`} />
+            <ellipse cx={chip.cx} cy={chip.cy} rx={chip.rx} ry={chip.ry} fill={c.chipBody} />
+            <ellipse cx={chip.cx - chip.rx * 0.28} cy={chip.cy - chip.ry * 0.28} rx={chip.rx * 0.58} ry={chip.ry * 0.52} fill={c.chipRim} opacity="0.40" />
+            <ellipse cx={chip.cx - chip.rx * 0.30} cy={chip.cy - chip.ry * 0.34} rx={chip.rx * 0.30} ry={chip.ry * 0.26} fill={c.chipGloss} />
+          </g>
+        ))}
+      </g>
+
+      {/* Drizzle — wavy lines on top */}
+      {drizzleColor && (
+        <g clipPath={`url(#byc-clip-${uid})`} className="byc-drizzle-in">
+          <path d="M 55,108 Q 90,98 130,112 Q 170,126 210,108"  stroke={drizzleColor} strokeWidth="4.5" strokeLinecap="round" fill="none" opacity="0.88" />
+          <path d="M 48,148 Q 88,136 130,150 Q 172,164 215,148" stroke={drizzleColor} strokeWidth="4" strokeLinecap="round" fill="none" opacity="0.80" />
+          <path d="M 48,188 Q 88,176 132,190 Q 176,204 212,188" stroke={drizzleColor} strokeWidth="4.5" strokeLinecap="round" fill="none" opacity="0.88" />
+          <path d="M 56,228 Q 92,217 130,229 Q 166,240 206,224" stroke={drizzleColor} strokeWidth="3.5" strokeLinecap="round" fill="none" opacity="0.72" />
+        </g>
+      )}
+
+
+      {/* Edge vignette */}
+      <path d={COOKIE_PATH_BYC} fill={`url(#byc-vig-${uid})`} />
+    </svg>
+  );
+}
+
+function BuildYourCookie() {
+  const rawId = useId();
+  const uid = rawId.replace(/:/g, "byc");
+
+  const [base,    setBase]    = useState<string | null>(null);
+  const [drizzle, setDrizzle] = useState<string | null>(null);
+  const [extras,  setExtras]  = useState<string[]>([]);
+
+  const toggleExtra = (id: string) =>
+    setExtras(prev => prev.includes(id) ? prev.filter(e => e !== id) : [...prev, id]);
+
+  const bd = BYC_BASES.find(b => b.id === base);
+  const accent = bd?.accent ?? "#8b5a3c";
+
+  const stepNumStyle = (active: boolean, done: boolean): React.CSSProperties => ({
+    width: 28, height: 28, borderRadius: "50%",
+    background: done ? "#5a9c5a" : active ? accent : "rgba(0,0,0,0.15)",
+    color: "#fff",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    fontSize: "0.8rem", fontWeight: 700, flexShrink: 0,
+    transition: "background 0.3s ease",
+  });
+
+  const handleReset = () => {
+    setBase(null);
+    setDrizzle(null);
+    setExtras([]);
+  };
+
+  return (
+    <section
+      id="build-cookie"
+      className="px-5"
+      style={{ paddingTop: "4rem", paddingBottom: "5rem", background: "#fff8f2", position: "relative", zIndex: 2 }}
+    >
+      <div className="max-w-6xl mx-auto">
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+          className="text-center"
+          style={{ marginBottom: "3rem" }}
+        >
+          <p style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.12em", color: "#8b1515", textTransform: "uppercase", marginBottom: "0.6rem" }}>
+            Kreasi Cookie Kamu
+          </p>
+          <h2 style={{ fontSize: "clamp(1.75rem, 4vw, 3rem)", fontWeight: 800, color: "#1a1a1a", letterSpacing: "-0.02em" }}>
+            Build Your Cookie
+          </h2>
+          <p style={{ fontSize: "clamp(0.85rem, 2vw, 1rem)", color: "#888", maxWidth: "420px", margin: "0.75rem auto 0", lineHeight: 1.7 }}>
+            Pilih base cookie, drizzle, dan ekstra topping favoritmu — lihat hasilnya langsung!
+          </p>
+        </motion.div>
+
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "center", gap: "3rem" }}>
+
+          {/* Cookie preview */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.88 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            viewport={{ once: true }}
+            style={{ width: "100%", maxWidth: "220px", flexShrink: 0 }}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${base}-${drizzle}-${extras.join(",")}`}
+                initial={{ opacity: 0, scale: 0.94 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.94 }}
+                transition={{ duration: 0.3 }}
+              >
+                <CookiePreview base={base} drizzle={drizzle} extras={extras} uid={uid} />
+              </motion.div>
+            </AnimatePresence>
+          </motion.div>
+
+          {/* Steps */}
+          <div style={{ flex: 1, minWidth: "280px", maxWidth: "460px", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+
+            {/* Step 1 — Base cookie */}
+            <motion.div
+              initial={{ opacity: 0, x: 32 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              viewport={{ once: true }}
+              style={{
+                background: "#fff", borderRadius: 14, padding: "1rem 1.25rem",
+                border: `2px solid ${base ? "rgba(90,156,90,0.5)" : `rgba(139,90,60,0.35)`}`,
+                transition: "border-color 0.3s ease",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.85rem" }}>
+                <div style={stepNumStyle(true, !!base)}>{base ? "✓" : "1"}</div>
+                <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "#1a1a1a", margin: 0 }}>🍪 Pilih Base Cookie</h3>
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.65rem" }}>
+                {BYC_BASES.map(b => (
+                  <motion.button
+                    key={b.id}
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
+                    onClick={() => setBase(base === b.id ? null : b.id)}
+                    style={{
+                      padding: "0.6rem 1.25rem", borderRadius: 999,
+                      fontSize: "0.85rem", fontWeight: 600, cursor: "pointer",
+                      border: `2px solid ${base === b.id ? b.accent : "rgba(0,0,0,0.12)"}`,
+                      background: base === b.id ? b.accent : "#fff",
+                      color: base === b.id ? "#fff" : "#555",
+                      transition: "all 0.22s ease",
+                    }}
+                  >
+                    {b.label}
+                  </motion.button>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Step 2 — Drizzle */}
+            <motion.div
+              initial={{ opacity: 0, x: 32 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              viewport={{ once: true }}
+              style={{
+                background: "#fff", borderRadius: 14, padding: "1rem 1.25rem",
+                border: `2px solid ${!base ? "rgba(0,0,0,0.08)" : drizzle ? "rgba(90,156,90,0.5)" : "rgba(139,90,60,0.35)"}`,
+                opacity: !base ? 0.5 : 1,
+                transition: "all 0.3s ease",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: base ? "0.85rem" : 0 }}>
+                <div style={stepNumStyle(!!base, !!drizzle)}>{drizzle ? "✓" : "2"}</div>
+                <div>
+                  <h3 style={{ fontSize: "1rem", fontWeight: 700, color: base ? "#1a1a1a" : "#999", margin: 0 }}>
+                    ✨ Pilih Drizzle
+                  </h3>
+                  {base && <p style={{ fontSize: "0.75rem", color: "#aaa", margin: "2px 0 0", fontWeight: 500 }}>Opsional — skip jika tidak mau</p>}
+                </div>
+              </div>
+              {base && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.65rem" }}>
+                  {BYC_DRIZZLES.map(d => (
+                    <motion.button
+                      key={d.id}
+                      whileHover={{ scale: 1.04 }}
+                      whileTap={{ scale: 0.96 }}
+                      onClick={() => setDrizzle(drizzle === d.id ? null : d.id)}
+                      style={{
+                        padding: "0.6rem 1.25rem", borderRadius: 999,
+                        fontSize: "0.85rem", fontWeight: 600, cursor: "pointer",
+                        border: `2px solid ${drizzle === d.id ? d.color : "rgba(0,0,0,0.12)"}`,
+                        background: drizzle === d.id ? d.color : "#fff",
+                        color: drizzle === d.id ? "#fff" : "#555",
+                        transition: "all 0.22s ease",
+                        display: "flex", alignItems: "center", gap: "0.35rem",
+                      }}
+                    >
+                      <span style={{ width: 10, height: 10, borderRadius: "50%", background: d.color, display: "inline-block", flexShrink: 0 }} />
+                      {d.label}
+                    </motion.button>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+
+            {/* Summary */}
+            <AnimatePresence>
+              {base && (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 8 }}
+                  transition={{ duration: 0.35 }}
+                  style={{
+                    background: "#fff", borderRadius: 16,
+                    padding: "1rem 1.25rem",
+                    border: `1.5px solid ${accent}33`,
+                    boxShadow: `0 4px 18px ${accent}14`,
+                  }}
+                >
+                  <p style={{ fontSize: "0.78rem", fontWeight: 600, color: "#5a9c5a", marginBottom: "0.4rem", margin: "0 0 0.4rem" }}>
+                    Cookie kamu 🍪
+                  </p>
+                  <p style={{ fontSize: "0.92rem", color: "#333", fontWeight: 500, lineHeight: 1.65, margin: "0 0 0.85rem" }}>
+                    {BYC_BASES.find(b => b.id === base)?.label}
+                    {drizzle && ` + ${BYC_DRIZZLES.find(d => d.id === drizzle)?.label}`}
+                    {extras.map(e => ` + ${BYC_EXTRAS.find(x => x.id === e)?.label}`).join("")}
+                  </p>
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={handleReset}
+                    style={{
+                      padding: "0.5rem 1.2rem", borderRadius: 999,
+                      background: "rgba(0,0,0,0.06)", border: "none",
+                      fontSize: "0.8rem", color: "#888", cursor: "pointer", fontWeight: 500,
+                    }}
+                  >
+                    ↩ Ulangi
+                  </motion.button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────
+//  App
+// ─────────────────────────────────────────────
 
 export default function App() {
   const { scrollYProgress } = useScroll();
@@ -169,6 +930,8 @@ export default function App() {
         .hero-logo-img   { width: 80px;  height: 80px;  }
         .flavors-desktop { display: none; }
         .flavors-mobile  { display: block; }
+        .cookies-desktop { display: none; }
+        .cookies-mobile  { display: block; }
         .info-grid       { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 360px; margin: 0 auto 2rem; }
         .nav-mobile      { display: flex; }
         .nav-desktop     { display: none; }
@@ -178,9 +941,57 @@ export default function App() {
           .hero-logo-img   { width: 110px; height: 110px; }
           .flavors-desktop { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3rem; }
           .flavors-mobile  { display: none; }
+          .cookies-desktop { display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap; }
+          .cookies-mobile  { display: none; }
           .info-grid       { grid-template-columns: repeat(2, 1fr); max-width: 480px; margin: 0 auto 2.5rem; }
           .nav-mobile      { display: none !important; }
           .nav-desktop     { display: flex !important; }
+        }
+
+        /* ── Build Your Milkyu animations ── */
+        @keyframes sauceDripIn {
+          from { opacity: 0; transform: translateY(-18px); }
+          to   { opacity: 1; transform: translateY(0);     }
+        }
+        @keyframes cookieFall {
+          0%   { opacity: 0;   transform: translateY(0px)   rotate(0deg);   }
+          12%  { opacity: 1;   }
+          85%  { opacity: 0.9; }
+          100% { opacity: 0;   transform: translateY(158px) rotate(300deg); }
+        }
+        @keyframes iceDrop {
+          from { opacity: 0; transform: translateY(-20px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes milkPour {
+          from { opacity: 0; transform: scaleY(0); transform-origin: top; }
+          to   { opacity: 1; transform: scaleY(1); }
+        }
+        .bym-sauce-group {
+          animation: sauceDripIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+          transform-box: fill-box;
+          transform-origin: top center;
+        }
+        .bym-cookie-fall {
+          animation-name: cookieFall;
+          animation-iteration-count: infinite;
+          animation-timing-function: ease-in;
+          transform-box: fill-box;
+          transform-origin: center center;
+        }
+        .bym-ice-cube {
+          animation: iceDrop 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+          transform-box: fill-box;
+        }
+
+        /* Build Your Cookie drizzle animation */
+        @keyframes drizzleIn {
+          from { opacity: 0; stroke-dashoffset: 200; }
+          to   { opacity: 1; stroke-dashoffset: 0; }
+        }
+        .byc-drizzle-in path {
+          stroke-dasharray: 200;
+          animation: drizzleIn 0.5s ease-out forwards;
         }
       `}</style>
 
@@ -206,10 +1017,12 @@ export default function App() {
             <span style={{ fontSize: "1.2rem", fontWeight: 700, color: "#1a1a1a", letterSpacing: "-0.02em" }}>Milkyu</span>
           </div>
           <nav className="nav-desktop items-center gap-8" style={{ fontSize: "0.9rem", color: "#666", fontWeight: 500 }}>
-            <a href="#flavors" style={{ textDecoration: "none", color: "#666" }} className="hover:opacity-60 transition-opacity">Varian Rasa</a>
-            <a href="#cookie" style={{ textDecoration: "none", color: "#666" }} className="hover:opacity-60 transition-opacity">Cemilan</a>
-            <a href="#about"   style={{ textDecoration: "none", color: "#666" }} className="hover:opacity-60 transition-opacity">Tentang</a>
-            <a href="#contact" style={{ textDecoration: "none", color: "#666" }} className="hover:opacity-60 transition-opacity">Kontak</a>
+            <a href="#flavors"      style={{ textDecoration: "none", color: "#666" }} className="hover:opacity-60 transition-opacity">Varian Rasa</a>
+            <a href="#cookie"       style={{ textDecoration: "none", color: "#666" }} className="hover:opacity-60 transition-opacity">Cemilan</a>
+            <a href="#build"        style={{ textDecoration: "none", color: "#666" }} className="hover:opacity-60 transition-opacity">Build Milkyu</a>
+            <a href="#build-cookie" style={{ textDecoration: "none", color: "#666" }} className="hover:opacity-60 transition-opacity">Build Cookie</a>
+            <a href="#about"        style={{ textDecoration: "none", color: "#666" }} className="hover:opacity-60 transition-opacity">Tentang</a>
+            <a href="#contact"      style={{ textDecoration: "none", color: "#666" }} className="hover:opacity-60 transition-opacity">Kontak</a>
           </nav>
           <nav className="nav-mobile items-center gap-4">
             <a href="#flavors" style={{ textDecoration: "none", color: "#666", fontSize: "0.8rem", fontWeight: 600 }}>Menu</a>
@@ -267,7 +1080,6 @@ export default function App() {
             <h2 style={{ fontSize: "clamp(1.75rem, 4vw, 3rem)", fontWeight: 800, color: "#1a1a1a", letterSpacing: "-0.02em" }}>Tiga Varian Favorit</h2>
           </motion.div>
 
-          {/* Desktop: 3-column grid */}
           <div className="flavors-desktop items-start">
             {FLAVORS.map(({ flavor, title, description }, i) => (
               <motion.div key={flavor} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: i * 0.15 }} viewport={{ once: true }} className="flex justify-center w-full">
@@ -276,19 +1088,15 @@ export default function App() {
             ))}
           </div>
 
-          {/* Mobile: swipe carousel */}
           <div className="flavors-mobile">
             <FlavorCarousel />
           </div>
         </div>
       </section>
-      
 
       {/* ── COOKIE ── */}
       <section id="cookie" className="px-5" style={{ paddingTop: "4rem", paddingBottom: "5rem", background: "#fff8f2", position: "relative", zIndex: 2 }}>
         <div className="max-w-6xl mx-auto">
-
-          {/* Section header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -304,87 +1112,26 @@ export default function App() {
             </p>
           </motion.div>
 
-          {/* Cookie display — centred, max-width constrained for nice proportions */}
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "3rem", flexWrap: "wrap" }}>
-            <motion.div
-              initial={{ opacity: 0, y: 40, scale: 0.92 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.75, ease: "easeOut" }}
-              viewport={{ once: true }}
-              style={{ width: "100%", maxWidth: "240px" }}
-            >
-              <Cookie
-                title="Red Velvet Cream Cheese"
-                description="Cookie red velvet yang lembut dengan isian cream cheese berkualitas."
-              />
+          <div className="cookies-desktop">
+            <motion.div initial={{ opacity: 0, y: 40, scale: 0.92 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.75, ease: "easeOut", delay: 0.1 }} viewport={{ once: true }} style={{ width: "100%", maxWidth: "240px" }}>
+              <Cookie variant="original" title="Brown Sugar Butter" description="Cookie brown sugar yang buttery dengan aroma karamel hangat yang menggoda." />
             </motion.div>
-
-            {/* Pairing suggestion card */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-              viewport={{ once: true }}
-              style={{
-                background: "rgba(139,21,21,0.05)",
-                border: "1.5px solid rgba(139,21,21,0.12)",
-                borderRadius: "20px",
-                padding: "1.75rem 1.5rem",
-                maxWidth: "280px",
-                width: "100%",
-              }}
-            >
-              <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#8b1515", marginBottom: "0.75rem" }}>
-                Padukan Dengan
-              </p>
-              {[
-                { emoji: "🍵", name: "Matcha Bliss",           note: "Keseimbangan rasa pahit & manis" },
-                { emoji: "🍫", name: "Chocolate Indulgence",  note: "Rasa coklat yang intens" },
-                { emoji: "🍓", name: "Strawberry Dream",       note: "Segar & playful" },
-              ].map(({ emoji, name, note }) => (
-                <motion.div
-                  key={name}
-                  whileHover={{ x: 4 }}
-                  style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: "0.75rem",
-                    padding: "0.65rem 0",
-                    borderBottom: "1px solid rgba(0,0,0,0.06)",
-                  }}
-                >
-                  <span style={{ fontSize: "1.4rem", lineHeight: 1 }}>{emoji}</span>
-                  <div>
-                    <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "#1a1a1a", marginBottom: "0.15rem" }}>{name}</p>
-                    <p style={{ fontSize: "0.75rem", color: "#999", lineHeight: 1.4 }}>{note}</p>
-                  </div>
-                </motion.div>
-              ))}
-
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => document.getElementById("flavors")?.scrollIntoView({ behavior: "smooth" })}
-                style={{
-                  marginTop: "1.2rem",
-                  width: "100%",
-                  padding: "0.65rem",
-                  borderRadius: "999px",
-                  background: "#8b1515",
-                  color: "#fff",
-                  fontSize: "0.82rem",
-                  fontWeight: 600,
-                  border: "none",
-                  cursor: "pointer",
-                  letterSpacing: "0.02em",
-                }}
-              >
-                Pilih Minumanmu →
-              </motion.button>
+            <motion.div initial={{ opacity: 0, y: 40, scale: 0.92 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.75, ease: "easeOut" }} viewport={{ once: true }} style={{ width: "100%", maxWidth: "240px" }}>
+              <Cookie title="Red Velvet Cream Cheese" description="Cookie red velvet yang lembut dengan isian cream cheese berkualitas." />
             </motion.div>
+          </div>
+
+          <div className="cookies-mobile">
+            <CookieCarousel />
           </div>
         </div>
       </section>
+
+      {/* ── BUILD YOUR MILKYU ── */}
+      <BuildYourMilkyu />
+
+      {/* ── BUILD YOUR COOKIE ── */}
+      <BuildYourCookie />
 
       {/* ── ABOUT ── */}
       <section id="about" className="px-5" style={{ paddingTop: "4rem", paddingBottom: "5rem", background: "#fff", position: "relative", zIndex: 2 }}>

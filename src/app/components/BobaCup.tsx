@@ -1,4 +1,4 @@
-import { useMotionValue, useSpring, motion } from "motion/react";
+import { motion } from "motion/react";
 import { useState, useRef, useEffect, useId } from "react";
 
 interface BobaCupProps {
@@ -45,10 +45,10 @@ const ICE_LAYOUT = [
 ];
 
 function cupLeftAt(y: number) {
-  return 58 + (90 - 58) * (y - 130) / (358 - 130);
+  return 58 + (90 - 58) * (y - 130) / (318 - 130);
 }
 function cupRightAt(y: number) {
-  return 202 + (170 - 202) * (y - 130) / (358 - 130);
+  return 202 + (170 - 202) * (y - 130) / (318 - 130);
 }
 
 export function BobaCup({ flavor, title, description }: BobaCupProps) {
@@ -56,43 +56,6 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
   const uid = rawId.replace(/:/g, "");
 
   const c = flavorColors[flavor];
-
-  const rotateX = useMotionValue(0);
-  const rotateY = useMotionValue(0);
-  const springRotateX = useSpring(rotateX, { stiffness: 280, damping: 28 });
-  const springRotateY = useSpring(rotateY, { stiffness: 280, damping: 28 });
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const ry = ((x - rect.width / 2) / (rect.width / 2)) * 22;
-    const rx = ((rect.height / 2 - y) / (rect.height / 2)) * 14;
-    rotateY.set(ry);
-    rotateX.set(rx);
-  };
-
-  const handleMouseLeave = () => {
-    rotateX.set(0);
-    rotateY.set(0);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const t = e.touches[0];
-    const x = t.clientX - rect.left;
-    const y = t.clientY - rect.top;
-    const ry = ((x - rect.width / 2) / (rect.width / 2)) * 22;
-    const rx = ((rect.height / 2 - y) / (rect.height / 2)) * 14;
-    rotateY.set(ry);
-    rotateX.set(rx);
-  };
-
-  const handleTouchEnd = () => {
-    rotateX.set(0);
-    rotateY.set(0);
-  };
 
   return (
     <div
@@ -127,20 +90,9 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
       <motion.div
         className="relative cursor-pointer select-none w-full"
         style={{ perspective: "1000px", aspectRatio: "220 / 350" }}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
         whileHover={{ scale: 1.03 }}
       >
-        <motion.div
-          style={{
-            rotateX: springRotateX,
-            rotateY: springRotateY,
-            transformStyle: "preserve-3d",
-          }}
-          className="relative w-full h-full"
-        >
+        <div className="relative w-full h-full">
           <svg
             width="100%"
             height="100%"
@@ -151,7 +103,7 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
           >
             <defs>
               <clipPath id={`cupClip-${uid}`}>
-                <path d="M 58 130 L 90 358 Q 90 368 105 368 L 155 368 Q 170 368 170 358 L 202 130 Z" />
+                <path d="M 58 130 L 90 318 Q 90 328 105 328 L 155 328 Q 170 328 170 318 L 202 130 Z" />
               </clipPath>
               <filter id={`iceGlow-${uid}`} x="-30%" y="-30%" width="160%" height="160%">
                 <feGaussianBlur stdDeviation="2.5" result="blur" />
@@ -229,7 +181,7 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
               })}
 
               {/* Milk base */}
-              <rect x="55" y={MILK_Y} width="150" height="160" fill={c.milkBase} />
+              <rect x="55" y={MILK_Y} width="150" height="120" fill={c.milkBase} />
               <path
                 className="sw3"
                 d="M 60 220 Q 100 231 138 217 Q 168 206 208 223"
@@ -242,25 +194,25 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
 
             {/* Cup glass overlay */}
             <path
-              d="M 58 130 L 90 358 Q 90 368 105 368 L 155 368 Q 170 368 170 358 L 202 130 Z"
+              d="M 58 130 L 90 318 Q 90 328 105 328 L 155 328 Q 170 328 170 318 L 202 130 Z"
               fill="rgba(230,244,255,0.10)"
               stroke="rgba(175,210,235,0.45)"
               strokeWidth="1.5"
             />
-            <path d="M 62 137 L 92 351" stroke="rgba(255,255,255,0.42)" strokeWidth="6" strokeLinecap="round" />
-            <path d="M 198 137 L 168 351" stroke="rgba(255,255,255,0.14)" strokeWidth="3" strokeLinecap="round" />
+            <path d="M 62 137 L 92 311" stroke="rgba(255,255,255,0.42)" strokeWidth="6" strokeLinecap="round" />
+            <path d="M 198 137 L 168 311" stroke="rgba(255,255,255,0.14)" strokeWidth="3" strokeLinecap="round" />
 
             {/* White bottom base */}
             <path
-              d="M 92 331 L 90 358 Q 90 368 105 368 L 155 368 Q 170 368 170 358 L 168 331 Z"
+              d="M 92 291 L 90 318 Q 90 328 105 328 L 155 328 Q 170 328 170 318 L 168 291 Z"
               fill="rgba(245,244,240,0.97)"
               stroke="rgba(200,198,192,0.35)"
               strokeWidth="1"
             />
-            <line x1="92" y1="331" x2="168" y2="331" stroke="rgba(185,182,175,0.3)" strokeWidth="1" />
+            <line x1="92" y1="291" x2="168" y2="291" stroke="rgba(185,182,175,0.3)" strokeWidth="1" />
 
             {/* Logo */}
-            <foreignObject x="88" y="241" width="84" height="80">
+            <foreignObject x="88" y="210" width="84" height="70">
               <div
                 style={{
                   display: "flex",
@@ -283,7 +235,7 @@ export function BobaCup({ flavor, title, description }: BobaCupProps) {
             <rect x="127" y="28" width="9" height="175" rx="4.5" fill="#111111" transform="rotate(7, 131, 109)" />
             <rect x="128.5" y="30" width="2.5" height="155" rx="1.25" fill="rgba(255,255,255,0.18)" transform="rotate(7, 129.5, 101)" />
           </svg>
-        </motion.div>
+        </div>
       </motion.div>
 
       <motion.div

@@ -1,4 +1,4 @@
-import { useState, useId } from "react";
+import { useState, useId, useEffect } from "react";
 import { motion, useScroll, useTransform, AnimatePresence } from "motion/react";
 import { BobaCup } from "./components/BobaCup";
 import { Cookie, CookieCarousel } from "./components/Cookie";
@@ -114,23 +114,15 @@ const BUILD_COOKIES = [
   { id: "red-velvet", label: "Red Velvet", bodyColor: "#D83030", chipColor: "#F2E5C8" },
 ];
 
-// Steps: 0=empty, 1=ice, 2=milk, 3=sauce, 4=cookie
-const BYM_STEPS = [
-  { label: "Mulai dengan gelas kosong", emoji: "🥤" },
-  { label: "Tambahkan Es Batu",          emoji: "🧊" },
-  { label: "Tambahkan Susu Plain",       emoji: "🥛" },
-  { label: "Pilih Sticky Sauce",         emoji: "🍫" },
-  { label: "Tambahkan Cookie (opsional)",emoji: "🍪" },
-];
-
 interface BuildCupPreviewProps {
   step: number;
   sauce: string | null;
   cookie: string | null;
   bymUid: string;
+  logoAdded?: boolean;
 }
 
-function BuildCupPreview({ step, sauce, cookie, bymUid }: BuildCupPreviewProps) {
+function BuildCupPreview({ step, sauce, cookie, bymUid, logoAdded = false }: BuildCupPreviewProps) {
   const sd = BUILD_SAUCES.find(s => s.id === sauce);
   const cd = BUILD_COOKIES.find(c => c.id === cookie);
 
@@ -240,6 +232,21 @@ function BuildCupPreview({ step, sauce, cookie, bymUid }: BuildCupPreviewProps) 
       {/* White bottom base */}
       <path d="M 92 291 L 90 318 Q 90 328 105 328 L 155 328 Q 170 328 170 318 L 168 291 Z" fill="rgba(245,244,240,0.97)" stroke="rgba(200,198,192,0.35)" strokeWidth="1" />
 
+      {/* Logo — appears when logoAdded */}
+      {logoAdded && (
+        <foreignObject x="88" y="210" width="84" height="70">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>
+            <img
+              src="/milkyu-logo.png"
+              alt="Milkyu"
+              draggable={false}
+              onContextMenu={(e) => e.preventDefault()}
+              style={{ width: "72px", height: "72px", objectFit: "contain", opacity: 0.88, pointerEvents: "none", userSelect: "none" }}
+            />
+          </div>
+        </foreignObject>
+      )}
+
       {/* Straw */}
       <rect x="129" y="30" width="9" height="175" rx="4.5" fill="rgba(0,0,0,0.18)" transform="rotate(7, 133, 110)" />
       <rect x="127" y="28" width="9" height="175" rx="4.5" fill="#111111" transform="rotate(7, 131, 109)" />
@@ -248,41 +255,86 @@ function BuildCupPreview({ step, sauce, cookie, bymUid }: BuildCupPreviewProps) 
   );
 }
 
-function BuildYourMilkyu() {
+// ─────────────────────────────────────────────
+//  Build Your Milkyu — Drag & Drop
+// ─────────────────────────────────────────────
+
+function BuildYourMilkyu({ onComplete }: { onComplete?: (sauce: string | null, logoAdded: boolean) => void }) {
   const rawId = useId();
   const bymUid = rawId.replace(/:/g, "bym");
 
-  // step 0 = empty, 1 = ice added, 2 = milk added, 3 = sauce picked, 4 = cookie picked
-  const [step, setStep] = useState(0);
-  const [sauce,  setSauce]  = useState<string | null>(null);
-  const [cookie, setCookie] = useState<string | null>(null);
+  // cupAdded tracks whether the glass has been placed
+  const [cupAdded, setCupAdded] = useState(false);
+  const [logoAdded, setLogoAdded] = useState(false);
+  // step: 0=no ice, 1=ice added, 2=milk added, 3=sauce picked
+  const [step, setStep]   = useState(0);
+  const [sauce, setSauce] = useState<string | null>(null);
+  const [isDragOverCup, setIsDragOverCup] = useState(false);
 
-  const selectedSauce  = BUILD_SAUCES.find(s => s.id === sauce);
-  const selectedCookie = BUILD_COOKIES.find(c => c.id === cookie);
+  const selectedSauce = BUILD_SAUCES.find(s => s.id === sauce);
 
-  const stepNumStyle: React.CSSProperties = {
-    width: 28, height: 28, borderRadius: "50%",
-    background: "#8b5a3c", color: "#fff",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    fontSize: "0.8rem", fontWeight: 700, flexShrink: 0,
+  const handleIngredient = (itemId: string) => {
+    if (itemId === "cup" && !cupAdded) {
+      setCupAdded(true);
+    } else if (itemId === "logo" && cupAdded && !logoAdded) {
+      setLogoAdded(true);
+    } else if (itemId === "ice" && cupAdded && step === 0) {
+      setStep(1);
+    } else if (itemId === "milk" && step === 1) {
+      setStep(2);
+    } else if (itemId.endsWith("-sauce") && step >= 2) {
+      const sauceId = itemId.replace("-sauce", "");
+      setSauce(sauceId);
+      if (step === 2) setStep(3);
+    }
   };
 
-  const stepNumDoneStyle: React.CSSProperties = {
-    ...stepNumStyle,
-    background: "#5a9c5a",
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const itemId = e.dataTransfer.getData("ingredient");
+    if (itemId) handleIngredient(itemId);
+    setIsDragOverCup(false);
   };
 
-  const stepNumLockedStyle: React.CSSProperties = {
-    ...stepNumStyle,
-    background: "rgba(0,0,0,0.15)",
-  };
+  const isComplete = step >= 3 && !!sauce;
 
-  const isComplete = step >= 3 && sauce;
+  useEffect(() => {
+    if (isComplete && onComplete) onComplete(sauce, logoAdded);
+  }, [isComplete, sauce, logoAdded]); // eslint-disable-line
 
   const handleReset = () => {
+    setCupAdded(false);
+    setLogoAdded(false);
     setStep(0);
     setSauce(null);
-    setCookie(null);
+  };
+
+  // Tray items
+  const TRAY = [
+    { id: "cup",               label: "Tambah Gelas",  emoji: "🥤", unlocked: !cupAdded,                    done: cupAdded },
+    { id: "logo",              label: "Tambah Logo",   emoji: "🏷️", unlocked: cupAdded && !logoAdded,        done: logoAdded },
+    { id: "ice",               label: "Es Batu",       emoji: "🧊", unlocked: cupAdded && step === 0,        done: step >= 1 },
+    { id: "milk",              label: "Susu Plain",    emoji: "🥛", unlocked: step === 1,                    done: step >= 2 },
+    { id: "chocolate-sauce",   label: "Saus Coklat",   emoji: "🍫", unlocked: step >= 2,                     done: sauce === "chocolate" },
+    { id: "matcha-sauce",      label: "Saus Matcha",   emoji: "🍵", unlocked: step >= 2,                     done: sauce === "matcha" },
+    { id: "strawberry-sauce",  label: "Saus Stroberi", emoji: "🍓", unlocked: step >= 2,                     done: sauce === "strawberry" },
+  ];
+
+  // Progress step definitions
+  const PROGRESS = [
+    { label: "🥤 Tambah Gelas",             done: cupAdded },
+    { label: "🏷️ Tambah Logo",              done: logoAdded },
+    { label: "🧊 Masukkan Es Batu",          done: step >= 1 },
+    { label: "🥛 Tuangkan Susu",             done: step >= 2 },
+    { label: "🍫 Masukkan Saus Sticky Milk", done: !!sauce },
+  ];
+
+  const stepNumBase: React.CSSProperties = {
+    width: 28, height: 28, borderRadius: "50%",
+    color: "#fff",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    fontSize: "0.8rem", fontWeight: 700, flexShrink: 0,
+    transition: "background 0.3s ease",
   };
 
   return (
@@ -299,7 +351,7 @@ function BuildYourMilkyu() {
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
           className="text-center"
-          style={{ marginBottom: "3rem" }}
+          style={{ marginBottom: "2.5rem" }}
         >
           <p style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.12em", color: "#8b5a3c", textTransform: "uppercase", marginBottom: "0.6rem" }}>
             Kreasi Favoritmu
@@ -307,197 +359,207 @@ function BuildYourMilkyu() {
           <h2 style={{ fontSize: "clamp(1.75rem, 4vw, 3rem)", fontWeight: 800, color: "#1a1a1a", letterSpacing: "-0.02em" }}>
             Build Your Milkyu
           </h2>
-          <p style={{ fontSize: "clamp(0.85rem, 2vw, 1rem)", color: "#888", maxWidth: "420px", margin: "0.75rem auto 0", lineHeight: 1.7 }}>
-            Racik sendiri minumanmu langkah demi langkah — dan lihat hasilnya langsung!
+          <p style={{ fontSize: "clamp(0.85rem, 2vw, 1rem)", color: "#888", maxWidth: "440px", margin: "0.75rem auto 0", lineHeight: 1.7 }}>
+            Seret bahan ke dalam gelas satu per satu — dan lihat minumanmu terbentuk langsung!
+          </p>
+          <p style={{ fontSize: "0.78rem", color: "#aaa", marginTop: "0.4rem" }}>
+            🖱️ Drag &amp; drop bahan ke dalam gelas
           </p>
         </motion.div>
 
+        {/* ── Ingredient Tray ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          viewport={{ once: true }}
+          style={{
+            display: "flex", flexWrap: "wrap", gap: "0.65rem",
+            justifyContent: "center", marginBottom: "2.5rem",
+            padding: "1.25rem 1rem",
+            background: "rgba(255,255,255,0.55)",
+            borderRadius: 18,
+            border: "1.5px solid rgba(139,90,60,0.12)",
+          }}
+        >
+          {TRAY.map(item => (
+            <motion.div
+              key={item.id}
+              draggable={item.unlocked || undefined}
+              onDragStart={item.unlocked ? (e) => {
+                e.dataTransfer.setData("ingredient", item.id);
+                e.dataTransfer.effectAllowed = "move";
+              } : undefined}
+              whileHover={item.unlocked ? { scale: 1.1, y: -5 } : {}}
+              whileTap={item.unlocked ? { scale: 0.93 } : {}}
+              style={{
+                display: "flex", flexDirection: "column", alignItems: "center", gap: "0.3rem",
+                padding: "0.7rem 0.9rem",
+                background: item.done
+                  ? "rgba(90,156,90,0.12)"
+                  : item.unlocked
+                    ? "#fff"
+                    : "rgba(255,255,255,0.35)",
+                borderRadius: 14,
+                border: `2px solid ${
+                  item.done
+                    ? "rgba(90,156,90,0.5)"
+                    : item.unlocked
+                      ? "#8b5a3c"
+                      : "rgba(0,0,0,0.07)"
+                }`,
+                cursor: item.unlocked ? "grab" : item.done ? "default" : "not-allowed",
+                opacity: item.done ? 0.7 : item.unlocked ? 1 : 0.35,
+                minWidth: 72,
+                boxShadow: item.unlocked ? "0 4px 16px rgba(139,90,60,0.15)" : "none",
+                transition: "all 0.25s ease",
+                userSelect: "none",
+              }}
+            >
+              <span style={{ fontSize: "2rem", lineHeight: 1 }}>{item.emoji}</span>
+              <span style={{
+                fontSize: "0.68rem", fontWeight: 700, textAlign: "center",
+                color: item.done ? "#5a9c5a" : item.unlocked ? "#4a2c0c" : "#bbb",
+                lineHeight: 1.2,
+              }}>
+                {item.done ? "✓ Added" : item.label}
+              </span>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* ── Main area: Cup + Progress ── */}
         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "center", gap: "3rem" }}>
 
-          {/* Cup preview */}
+          {/* Cup drop zone */}
           <motion.div
             initial={{ opacity: 0, scale: 0.88 }}
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, ease: "easeOut" }}
             viewport={{ once: true }}
-            style={{ width: "100%", maxWidth: "190px", flexShrink: 0 }}
+            onDragOver={(e) => { e.preventDefault(); setIsDragOverCup(true); }}
+            onDragLeave={() => setIsDragOverCup(false)}
+            onDrop={handleDrop}
+            style={{
+              width: "100%", maxWidth: "190px", flexShrink: 0,
+              borderRadius: 20,
+              border: isDragOverCup ? "2.5px dashed #8b5a3c" : "2.5px dashed transparent",
+              background: isDragOverCup ? "rgba(139,90,60,0.07)" : "transparent",
+              transition: "all 0.2s ease",
+              padding: 6,
+              position: "relative",
+            }}
           >
-            <BuildCupPreview step={step} sauce={sauce} cookie={cookie} bymUid={bymUid} />
+            <AnimatePresence mode="wait">
+              {!cupAdded ? (
+                <motion.div
+                  key="placeholder"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.25 }}
+                  style={{
+                    aspectRatio: "190/320",
+                    display: "flex", flexDirection: "column",
+                    alignItems: "center", justifyContent: "center", gap: "0.85rem",
+                    background: isDragOverCup ? "rgba(139,90,60,0.08)" : "rgba(255,255,255,0.45)",
+                    borderRadius: 16,
+                    border: "2px dashed rgba(139,90,60,0.25)",
+                    transition: "background 0.2s",
+                  }}
+                >
+                  <motion.span
+                    animate={{ y: [0, -6, 0] }}
+                    transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                    style={{ fontSize: "3.2rem", lineHeight: 1 }}
+                  >
+                    🥤
+                  </motion.span>
+                  <p style={{ fontSize: "0.78rem", color: "#8b5a3c", fontWeight: 700, textAlign: "center", padding: "0 1rem", margin: 0 }}>
+                    Seret gelas<br />ke sini
+                  </p>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="cup"
+                  initial={{ opacity: 0, scale: 0.88 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.35, ease: "easeOut" }}
+                >
+                  <BuildCupPreview step={step} sauce={sauce} cookie={null} bymUid={bymUid} logoAdded={logoAdded} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Drag-over overlay label */}
+            <AnimatePresence>
+              {isDragOverCup && (
+                <motion.div
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  style={{
+                    position: "absolute", bottom: -28, left: "50%",
+                    transform: "translateX(-50%)",
+                    fontSize: "0.75rem", color: "#8b5a3c", fontWeight: 700,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Lepaskan di sini! 👆
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
 
-          {/* Steps panel */}
-          <div style={{ flex: 1, minWidth: "280px", maxWidth: "460px", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          {/* Progress steps panel */}
+          <div style={{ flex: 1, minWidth: "260px", maxWidth: "440px", display: "flex", flexDirection: "column", gap: "0.85rem" }}>
 
-            {/* Step 1 — Empty cup (auto-done, just show) */}
-            <motion.div
-              initial={{ opacity: 0, x: 32 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              viewport={{ once: true }}
-              style={{
-                background: step >= 0 ? "#fff" : "rgba(255,255,255,0.5)",
-                borderRadius: 14,
-                padding: "1rem 1.25rem",
-                border: step === 0 ? "2px solid #8b5a3c" : "2px solid rgba(90,156,90,0.5)",
-                transition: "all 0.3s ease",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: step === 0 ? "0.85rem" : 0 }}>
-                <div style={step > 0 ? stepNumDoneStyle : stepNumStyle}>
-                  {step > 0 ? "✓" : "1"}
-                </div>
-                <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "#1a1a1a", margin: 0 }}>
-                  🧊 Tambahkan Es Batu
-                </h3>
-              </div>
-              {step === 0 && (
-                <motion.button
-                  whileHover={{ scale: 1.04 }}
-                  whileTap={{ scale: 0.96 }}
-                  onClick={() => setStep(1)}
+            {PROGRESS.map((ps, i) => {
+              const prevDone = i === 0 || PROGRESS[i - 1].done;
+              const isActive = !ps.done && prevDone;
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: 32 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: i * 0.08 }}
+                  viewport={{ once: true }}
                   style={{
-                    padding: "0.6rem 1.5rem", borderRadius: 999,
-                    background: "#8b5a3c", color: "#fff",
-                    fontSize: "0.88rem", fontWeight: 600, cursor: "pointer",
-                    border: "none", marginTop: "0.25rem",
+                    background: "#fff",
+                    borderRadius: 14,
+                    padding: "0.9rem 1.25rem",
+                    border: ps.done
+                      ? "2px solid rgba(90,156,90,0.5)"
+                      : isActive
+                        ? "2px solid #8b5a3c"
+                        : "2px solid rgba(0,0,0,0.07)",
+                    opacity: (!ps.done && !isActive) ? 0.4 : 1,
+                    transition: "all 0.3s ease",
+                    display: "flex", alignItems: "center", gap: "0.85rem",
                   }}
                 >
-                  Mulai bikin →
-                </motion.button>
-              )}
-            </motion.div>
-
-            {/* Step 2 — Add Ice */}
-            <motion.div
-              initial={{ opacity: 0, x: 32 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.15 }}
-              viewport={{ once: true }}
-              style={{
-                background: step >= 1 ? "#fff" : "rgba(255,255,255,0.4)",
-                borderRadius: 14,
-                padding: "1rem 1.25rem",
-                border: step === 1 ? "2px solid #8b5a3c" : step > 1 ? "2px solid rgba(90,156,90,0.5)" : "2px solid rgba(0,0,0,0.08)",
-                opacity: step < 1 ? 0.5 : 1,
-                transition: "all 0.3s ease",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: step === 1 ? "0.85rem" : 0 }}>
-                <div style={step > 1 ? stepNumDoneStyle : step === 1 ? stepNumStyle : stepNumLockedStyle}>
-                  {step > 1 ? "✓" : "2"}
-                </div>
-                <h3 style={{ fontSize: "1rem", fontWeight: 700, color: step >= 1 ? "#1a1a1a" : "#999", margin: 0 }}>
-                  🥛 Tuangkan Susu Plain
-                </h3>
-              </div>
-              {step === 1 && (
-                <motion.button
-                  whileHover={{ scale: 1.04 }}
-                  whileTap={{ scale: 0.96 }}
-                  onClick={() => setStep(2)}
-                  style={{
-                    padding: "0.6rem 1.5rem", borderRadius: 999,
-                    background: "#8b5a3c", color: "#fff",
-                    fontSize: "0.88rem", fontWeight: 600, cursor: "pointer",
-                    border: "none", marginTop: "0.25rem",
-                  }}
-                >
-                  Masukkan es batu →
-                </motion.button>
-              )}
-            </motion.div>
-
-            {/* Step 3 — Add Milk */}
-            <motion.div
-              initial={{ opacity: 0, x: 32 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-              style={{
-                background: step >= 2 ? "#fff" : "rgba(255,255,255,0.4)",
-                borderRadius: 14,
-                padding: "1rem 1.25rem",
-                border: step === 2 ? "2px solid #8b5a3c" : step > 2 ? "2px solid rgba(90,156,90,0.5)" : "2px solid rgba(0,0,0,0.08)",
-                opacity: step < 2 ? 0.5 : 1,
-                transition: "all 0.3s ease",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: step === 2 ? "0.85rem" : 0 }}>
-                <div style={step > 2 ? stepNumDoneStyle : step === 2 ? stepNumStyle : stepNumLockedStyle}>
-                  {step > 2 ? "✓" : "3"}
-                </div>
-                <h3 style={{ fontSize: "1rem", fontWeight: 700, color: step >= 2 ? "#1a1a1a" : "#999", margin: 0 }}>
-                  🥛 Tuangkan Susu Plain
-                </h3>
-              </div>
-              {step === 2 && (
-                <motion.button
-                  whileHover={{ scale: 1.04 }}
-                  whileTap={{ scale: 0.96 }}
-                  onClick={() => setStep(3)}
-                  style={{
-                    padding: "0.6rem 1.5rem", borderRadius: 999,
-                    background: "#8b5a3c", color: "#fff",
-                    fontSize: "0.88rem", fontWeight: 600, cursor: "pointer",
-                    border: "none", marginTop: "0.25rem",
-                  }}
-                >
-                  Tuang susu →
-                </motion.button>
-              )}
-            </motion.div>
-
-            {/* Step 4 — Sticky Sauce */}
-            <motion.div
-              initial={{ opacity: 0, x: 32 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.25 }}
-              viewport={{ once: true }}
-              style={{
-                background: step >= 3 ? "#fff" : "rgba(255,255,255,0.4)",
-                borderRadius: 14,
-                padding: "1rem 1.25rem",
-                border: step === 3 ? "2px solid #8b5a3c" : step > 3 ? "2px solid rgba(90,156,90,0.5)" : "2px solid rgba(0,0,0,0.08)",
-                opacity: step < 3 ? 0.5 : 1,
-                transition: "all 0.3s ease",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: step >= 3 ? "0.85rem" : 0 }}>
-                <div style={step > 3 ? stepNumDoneStyle : step === 3 ? stepNumStyle : stepNumLockedStyle}>
-                  {step > 3 ? "✓" : "4"}
-                </div>
-                <h3 style={{ fontSize: "1rem", fontWeight: 700, color: step >= 3 ? "#1a1a1a" : "#999", margin: 0 }}>
-                  🍫 Pilih Sticky Sauce
-                </h3>
-              </div>
-              {step >= 3 && (
-                <>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.65rem" }}>
-                    {BUILD_SAUCES.map(s => (
-                      <motion.button
-                        key={s.id}
-                        whileHover={{ scale: 1.04 }}
-                        whileTap={{ scale: 0.96 }}
-                        onClick={() => {
-                          setSauce(sauce === s.id ? null : s.id);
-                          if (step === 3) setStep(4);
-                        }}
-                        style={{
-                          padding: "0.6rem 1.2rem", borderRadius: 999,
-                          fontSize: "0.85rem", fontWeight: 600, cursor: "pointer",
-                          border: `2px solid ${sauce === s.id ? s.accent : "rgba(0,0,0,0.12)"}`,
-                          background: sauce === s.id ? s.accent : "#fff",
-                          color: sauce === s.id ? "#fff" : "#555",
-                          transition: "all 0.22s ease",
-                        }}
-                      >
-                        {s.label}
-                      </motion.button>
-                    ))}
+                  <div style={{
+                    ...stepNumBase,
+                    background: ps.done ? "#5a9c5a" : isActive ? "#8b5a3c" : "rgba(0,0,0,0.15)",
+                  }}>
+                    {ps.done ? "✓" : i + 1}
                   </div>
-                </>
-              )}
-            </motion.div>
+                  <div>
+                    <span style={{
+                      fontSize: "0.95rem", fontWeight: 700,
+                      color: ps.done ? "#5a9c5a" : isActive ? "#1a1a1a" : "#999",
+                    }}>
+                      {ps.label}
+                    </span>
+                    {isActive && (
+                      <p style={{ fontSize: "0.72rem", color: "#aaa", margin: "2px 0 0", fontWeight: 500 }}>
+                        Seret bahan yang menyala ke gelas ☝️
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
 
             {/* Summary card */}
             <AnimatePresence>
@@ -514,13 +576,11 @@ function BuildYourMilkyu() {
                     boxShadow: "0 4px 18px rgba(139,90,60,0.08)",
                   }}
                 >
-                  <p style={{ fontSize: "0.78rem", fontWeight: 600, color: "#5a9c5a", marginBottom: "0.4rem", margin: "0 0 0.4rem" }}>
+                  <p style={{ fontSize: "0.78rem", fontWeight: 600, color: "#5a9c5a", margin: "0 0 0.4rem" }}>
                     Kreasi kamu siap! 🎉
                   </p>
                   <p style={{ fontSize: "0.92rem", color: "#333", fontWeight: 500, lineHeight: 1.65, margin: "0 0 0.85rem" }}>
-                    Plain Milk + Es Batu
-                    {selectedSauce  && ` + ${selectedSauce.label}`}
-                    {selectedCookie && ` + ${selectedCookie.label} Cookie`}
+                    Plain Milk + Es Batu{selectedSauce && ` + ${selectedSauce.label}`}
                   </p>
                   <motion.button
                     whileHover={{ scale: 1.03 }}
@@ -556,9 +616,11 @@ const BYC_BASES = [
 
 const BYC_DRIZZLES = [
   { id: "chocolate", label: "Chocolate Drizzle", color: "#3b1f0e" },
-  { id: "strawberry",   label: "Strawberry Drizzle",   color: "#e8606e" },
+  { id: "strawberry", label: "Strawberry Drizzle", color: "#e8606e" },
   { id: "matcha",    label: "Matcha Drizzle",     color: "#4a7c4e" },
 ];
+
+const BYC_EXTRAS: { id: string; label: string }[] = [];
 
 // Cookie path
 const COOKIE_PATH_BYC = "M 107,69 Q 130,63 152,72 Q 174,80 193,95 Q 211,109 215,132 Q 219,155 215,179 Q 211,202 193,217 Q 174,231 152,239 Q 130,246 109,238 Q 87,230 68,216 Q 49,202 45,179 Q 40,155 47,133 Q 54,111 69,93 Q 83,74 107,69 Z";
@@ -583,19 +645,19 @@ interface CookiePreviewProps {
   drizzle: string | null;
   extras: string[];
   uid: string;
+  showChips?: boolean;
 }
 
-function CookiePreview({ base, drizzle, extras, uid }: CookiePreviewProps) {
+function CookiePreview({ base, drizzle, extras, uid, showChips = true }: CookiePreviewProps) {
   const bd = BYC_BASES.find(b => b.id === base);
 
   if (!bd) {
     // Show empty plate / placeholder
     return (
       <svg width="100%" height="100%" viewBox="0 0 260 290" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="130" cy="175" rx="96" ry="14" fill="rgba(0,0,0,0.07)" />
-        <circle cx="130" cy="155" r="76" fill="rgba(0,0,0,0.04)" stroke="rgba(0,0,0,0.08)" strokeWidth="2" strokeDasharray="6 5" />
-        <text x="130" y="148" textAnchor="middle" fontSize="28" opacity="0.25">🍪</text>
-        <text x="130" y="172" textAnchor="middle" fontSize="11" fill="rgba(0,0,0,0.3)" fontWeight="600">Pilih base dulu</text>
+        <circle cx="130" cy="155" r="76" fill="rgba(0,0,0,0.08)" stroke="rgba(0,0,0,0.18)" strokeWidth="2" strokeDasharray="6 5" />
+        <text x="130" y="148" textAnchor="middle" fontSize="28" opacity="0.55">🍪</text>
+        <text x="130" y="172" textAnchor="middle" fontSize="11" fill="rgba(0,0,0,0.55)" fontWeight="600">Seret base cookie ke sini</text>
       </svg>
     );
   }
@@ -606,7 +668,6 @@ function CookiePreview({ base, drizzle, extras, uid }: CookiePreviewProps) {
     : { g0: "#D83030", g1: "#8C0F0F", g2: "#510505", g3: "#250202", spec: "rgba(230,80,80,0.48)", edge: "rgba(50,0,0,0.42)", crackRgb: "65,5,5", chipBody: "#F2E5C8", chipRim: "#FFF5E0", chipGloss: "rgba(255,255,235,0.60)", shadowFlood: "rgba(80,0,0,0.30)" };
 
   const drizzleColor = BYC_DRIZZLES.find(d => d.id === drizzle)?.color;
-
 
   return (
     <svg width="100%" height="100%" viewBox="0 0 260 290" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ overflow: "visible" }}>
@@ -648,17 +709,19 @@ function CookiePreview({ base, drizzle, extras, uid }: CookiePreviewProps) {
         <path d="M 68,231 Q 106,217 142,227 T 192,222"         stroke={`rgba(${c.crackRgb},0.12)`} strokeWidth="1.4" fill="none" strokeLinecap="round" />
       </g>
 
-      {/* Chips */}
-      <g clipPath={`url(#byc-clip-${uid})`}>
-        {CHIPS_BYC.map((chip, i) => (
-          <g key={i} transform={`rotate(${chip.a},${chip.cx},${chip.cy})`}>
-            <ellipse cx={chip.cx + 2} cy={chip.cy + 2.5} rx={chip.rx * 0.92} ry={chip.ry * 0.88} fill="rgba(0,0,0,0.28)" filter={`url(#byc-chipBlur-${uid})`} />
-            <ellipse cx={chip.cx} cy={chip.cy} rx={chip.rx} ry={chip.ry} fill={c.chipBody} />
-            <ellipse cx={chip.cx - chip.rx * 0.28} cy={chip.cy - chip.ry * 0.28} rx={chip.rx * 0.58} ry={chip.ry * 0.52} fill={c.chipRim} opacity="0.40" />
-            <ellipse cx={chip.cx - chip.rx * 0.30} cy={chip.cy - chip.ry * 0.34} rx={chip.rx * 0.30} ry={chip.ry * 0.26} fill={c.chipGloss} />
-          </g>
-        ))}
-      </g>
+      {/* Chips — conditional */}
+      {showChips && (
+        <g clipPath={`url(#byc-clip-${uid})`}>
+          {CHIPS_BYC.map((chip, i) => (
+            <g key={i} transform={`rotate(${chip.a},${chip.cx},${chip.cy})`}>
+              <ellipse cx={chip.cx + 2} cy={chip.cy + 2.5} rx={chip.rx * 0.92} ry={chip.ry * 0.88} fill="rgba(0,0,0,0.28)" filter={`url(#byc-chipBlur-${uid})`} />
+              <ellipse cx={chip.cx} cy={chip.cy} rx={chip.rx} ry={chip.ry} fill={c.chipBody} />
+              <ellipse cx={chip.cx - chip.rx * 0.28} cy={chip.cy - chip.ry * 0.28} rx={chip.rx * 0.58} ry={chip.ry * 0.52} fill={c.chipRim} opacity="0.40" />
+              <ellipse cx={chip.cx - chip.rx * 0.30} cy={chip.cy - chip.ry * 0.34} rx={chip.rx * 0.30} ry={chip.ry * 0.26} fill={c.chipGloss} />
+            </g>
+          ))}
+        </g>
+      )}
 
       {/* Drizzle — wavy lines on top */}
       {drizzleColor && (
@@ -670,40 +733,109 @@ function CookiePreview({ base, drizzle, extras, uid }: CookiePreviewProps) {
         </g>
       )}
 
-
       {/* Edge vignette */}
       <path d={COOKIE_PATH_BYC} fill={`url(#byc-vig-${uid})`} />
     </svg>
   );
 }
 
-function BuildYourCookie() {
+// ─────────────────────────────────────────────
+//  Build Your Cookie — Drag & Drop
+// ─────────────────────────────────────────────
+
+function BuildYourCookie({ onComplete }: { onComplete?: (base: string | null, drizzle: string | null, chipsAdded: boolean) => void }) {
   const rawId = useId();
   const uid = rawId.replace(/:/g, "byc");
 
-  const [base,    setBase]    = useState<string | null>(null);
-  const [drizzle, setDrizzle] = useState<string | null>(null);
-  const [extras,  setExtras]  = useState<string[]>([]);
+  const [base,       setBase]       = useState<string | null>(null);
+  const [chipsAdded, setChipsAdded] = useState(false);
+  const [drizzle,    setDrizzle]    = useState<string | null>(null);
+  const [isDragOverCookie, setIsDragOverCookie] = useState(false);
 
-  const toggleExtra = (id: string) =>
-    setExtras(prev => prev.includes(id) ? prev.filter(e => e !== id) : [...prev, id]);
-
-  const bd = BYC_BASES.find(b => b.id === base);
+  const bd     = BYC_BASES.find(b => b.id === base);
   const accent = bd?.accent ?? "#8b5a3c";
 
-  const stepNumStyle = (active: boolean, done: boolean): React.CSSProperties => ({
-    width: 28, height: 28, borderRadius: "50%",
-    background: done ? "#5a9c5a" : active ? accent : "rgba(0,0,0,0.15)",
-    color: "#fff",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    fontSize: "0.8rem", fontWeight: 700, flexShrink: 0,
-    transition: "background 0.3s ease",
-  });
+  const handleIngredient = (itemId: string) => {
+    if (BYC_BASES.some(b => b.id === itemId)) {
+      setBase(itemId);
+      // reset chips/drizzle when base changes
+      if (itemId !== base) {
+        setChipsAdded(false);
+        setDrizzle(null);
+      }
+    } else if (itemId === "chips" && !!base) {
+      setChipsAdded(true);
+    } else if (BYC_DRIZZLES.some(d => d.id === itemId) && !!base) {
+      setDrizzle(prev => prev === itemId ? null : itemId);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const itemId = e.dataTransfer.getData("ingredient");
+    if (itemId) handleIngredient(itemId);
+    setIsDragOverCookie(false);
+  };
 
   const handleReset = () => {
     setBase(null);
+    setChipsAdded(false);
     setDrizzle(null);
-    setExtras([]);
+  };
+
+  // Tray sections
+  type TrayItem = { id: string; label: string; swatch: string; unlocked: boolean; done: boolean };
+  const traySections: { section: string; items: TrayItem[] }[] = [
+    {
+      section: "🍪 Base Cookie",
+      items: BYC_BASES.map(b => ({
+        id: b.id,
+        label: b.label,
+        swatch: b.bodyColor,
+        unlocked: true,
+        done: base === b.id,
+      })),
+    },
+    {
+      section: "◉ Chips",
+      items: [{
+        id: "chips",
+        label: bd ? `${bd.label} Chips` : "Chocolate Chips",
+        swatch: bd?.chipColor ?? "#1C0800",
+        unlocked: !!base && !chipsAdded,
+        done: chipsAdded,
+      }],
+    },
+    {
+      section: "〰️ Drizzle",
+      items: BYC_DRIZZLES.map(d => ({
+        id: d.id,
+        label: d.label,
+        swatch: d.color,
+        unlocked: !!base,
+        done: drizzle === d.id,
+      })),
+    },
+  ];
+
+  const PROGRESS = [
+    { label: "🍪 Pilih Base Cookie",  done: !!base },
+    { label: "◉ Taruh Chips",         done: chipsAdded },
+    { label: "〰️ Tambah Drizzle",     done: !!drizzle },
+  ];
+
+  const bycComplete = !!base;
+
+  useEffect(() => {
+    if (bycComplete && onComplete) onComplete(base, drizzle, chipsAdded);
+  }, [bycComplete, base, drizzle, chipsAdded]); // eslint-disable-line
+
+  const stepNumBase: React.CSSProperties = {
+    width: 26, height: 26, borderRadius: "50%",
+    color: "#fff",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    fontSize: "0.75rem", fontWeight: 700, flexShrink: 0,
+    transition: "background 0.3s ease",
   };
 
   return (
@@ -720,7 +852,7 @@ function BuildYourCookie() {
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
           className="text-center"
-          style={{ marginBottom: "3rem" }}
+          style={{ marginBottom: "2.5rem" }}
         >
           <p style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.12em", color: "#8b1515", textTransform: "uppercase", marginBottom: "0.6rem" }}>
             Kreasi Cookie Kamu
@@ -728,122 +860,192 @@ function BuildYourCookie() {
           <h2 style={{ fontSize: "clamp(1.75rem, 4vw, 3rem)", fontWeight: 800, color: "#1a1a1a", letterSpacing: "-0.02em" }}>
             Build Your Cookie
           </h2>
-          <p style={{ fontSize: "clamp(0.85rem, 2vw, 1rem)", color: "#888", maxWidth: "420px", margin: "0.75rem auto 0", lineHeight: 1.7 }}>
-            Pilih base cookie, drizzle, dan ekstra topping favoritmu — lihat hasilnya langsung!
+          <p style={{ fontSize: "clamp(0.85rem, 2vw, 1rem)", color: "#888", maxWidth: "440px", margin: "0.75rem auto 0", lineHeight: 1.7 }}>
+            Seret base, chips, dan drizzle ke cookie kamu — custom sampai puas!
+          </p>
+          <p style={{ fontSize: "0.78rem", color: "#aaa", marginTop: "0.4rem" }}>
+            🖱️ Drag &amp; drop bahan ke cookie kamu
           </p>
         </motion.div>
 
+        {/* ── Ingredient Tray (3 sections) ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          viewport={{ once: true }}
+          style={{
+            display: "flex", flexWrap: "wrap", gap: "1.25rem",
+            justifyContent: "center", marginBottom: "2.5rem",
+            padding: "1.25rem 1rem",
+            background: "rgba(255,255,255,0.65)",
+            borderRadius: 18,
+            border: "1.5px solid rgba(139,21,21,0.1)",
+          }}
+        >
+          {traySections.map(sec => (
+            <div key={sec.section}>
+              <p style={{ fontSize: "0.7rem", fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.5rem", marginLeft: "0.15rem" }}>
+                {sec.section}
+              </p>
+              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                {sec.items.map(item => (
+                  <motion.div
+                    key={item.id}
+                    draggable={item.unlocked || undefined}
+                    onDragStart={item.unlocked ? (e) => {
+                      e.dataTransfer.setData("ingredient", item.id);
+                      e.dataTransfer.effectAllowed = "move";
+                    } : undefined}
+                    whileHover={item.unlocked ? { scale: 1.1, y: -4 } : {}}
+                    whileTap={item.unlocked ? { scale: 0.93 } : {}}
+                    style={{
+                      display: "flex", flexDirection: "column", alignItems: "center", gap: "0.3rem",
+                      padding: "0.65rem 0.85rem",
+                      background: item.done
+                        ? "rgba(90,156,90,0.12)"
+                        : item.unlocked
+                          ? "#fff"
+                          : "rgba(255,255,255,0.35)",
+                      borderRadius: 13,
+                      border: `2px solid ${
+                        item.done
+                          ? "rgba(90,156,90,0.5)"
+                          : item.unlocked
+                            ? accent
+                            : "rgba(0,0,0,0.07)"
+                      }`,
+                      cursor: item.unlocked ? "grab" : item.done ? "default" : "not-allowed",
+                      opacity: item.done ? 0.7 : item.unlocked ? 1 : 0.35,
+                      minWidth: 80,
+                      boxShadow: item.unlocked ? `0 4px 14px ${accent}22` : "none",
+                      transition: "all 0.25s ease",
+                      userSelect: "none",
+                    }}
+                  >
+                    {/* Color swatch */}
+                    <div style={{
+                      width: 32, height: 32, borderRadius: "50%",
+                      background: item.swatch,
+                      border: "2.5px solid rgba(255,255,255,0.7)",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                      flexShrink: 0,
+                    }} />
+                    <span style={{
+                      fontSize: "0.65rem", fontWeight: 700, textAlign: "center",
+                      color: item.done ? "#5a9c5a" : item.unlocked ? "#2a2a2a" : "#ccc",
+                      lineHeight: 1.25, maxWidth: 76,
+                    }}>
+                      {item.done ? "✓ Added" : item.label}
+                    </span>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </motion.div>
+
+        {/* ── Main area: Cookie + Progress ── */}
         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "center", gap: "3rem" }}>
 
-          {/* Cookie preview */}
+          {/* Cookie drop zone */}
           <motion.div
             initial={{ opacity: 0, scale: 0.88 }}
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, ease: "easeOut" }}
             viewport={{ once: true }}
-            style={{ width: "100%", maxWidth: "220px", flexShrink: 0 }}
+            onDragOver={(e) => { e.preventDefault(); setIsDragOverCookie(true); }}
+            onDragLeave={() => setIsDragOverCookie(false)}
+            onDrop={handleDrop}
+            style={{
+              width: "100%", maxWidth: "220px", flexShrink: 0,
+              borderRadius: 20,
+              border: isDragOverCookie ? `2.5px dashed ${accent}` : "2.5px dashed transparent",
+              background: isDragOverCookie ? `${accent}0e` : "transparent",
+              transition: "all 0.2s ease",
+              padding: 6,
+              position: "relative",
+            }}
           >
             <AnimatePresence mode="wait">
               <motion.div
-                key={`${base}-${drizzle}-${extras.join(",")}`}
+                key={`${base}-${chipsAdded}-${drizzle}`}
                 initial={{ opacity: 0, scale: 0.94 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.94 }}
                 transition={{ duration: 0.3 }}
               >
-                <CookiePreview base={base} drizzle={drizzle} extras={extras} uid={uid} />
+                <CookiePreview base={base} drizzle={drizzle} extras={[]} uid={uid} showChips={chipsAdded} />
               </motion.div>
+            </AnimatePresence>
+
+            {/* Drag-over label */}
+            <AnimatePresence>
+              {isDragOverCookie && (
+                <motion.div
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  style={{
+                    position: "absolute", bottom: -28, left: "50%",
+                    transform: "translateX(-50%)",
+                    fontSize: "0.75rem", color: accent, fontWeight: 700,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Lepaskan di sini! 👆
+                </motion.div>
+              )}
             </AnimatePresence>
           </motion.div>
 
-          {/* Steps */}
-          <div style={{ flex: 1, minWidth: "280px", maxWidth: "460px", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          {/* Progress steps */}
+          <div style={{ flex: 1, minWidth: "260px", maxWidth: "440px", display: "flex", flexDirection: "column", gap: "0.85rem" }}>
 
-            {/* Step 1 — Base cookie */}
-            <motion.div
-              initial={{ opacity: 0, x: 32 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              viewport={{ once: true }}
-              style={{
-                background: "#fff", borderRadius: 14, padding: "1rem 1.25rem",
-                border: `2px solid ${base ? "rgba(90,156,90,0.5)" : `rgba(139,90,60,0.35)`}`,
-                transition: "border-color 0.3s ease",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.85rem" }}>
-                <div style={stepNumStyle(true, !!base)}>{base ? "✓" : "1"}</div>
-                <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "#1a1a1a", margin: 0 }}>🍪 Pilih Base Cookie</h3>
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.65rem" }}>
-                {BYC_BASES.map(b => (
-                  <motion.button
-                    key={b.id}
-                    whileHover={{ scale: 1.04 }}
-                    whileTap={{ scale: 0.96 }}
-                    onClick={() => setBase(base === b.id ? null : b.id)}
-                    style={{
-                      padding: "0.6rem 1.25rem", borderRadius: 999,
-                      fontSize: "0.85rem", fontWeight: 600, cursor: "pointer",
-                      border: `2px solid ${base === b.id ? b.accent : "rgba(0,0,0,0.12)"}`,
-                      background: base === b.id ? b.accent : "#fff",
-                      color: base === b.id ? "#fff" : "#555",
-                      transition: "all 0.22s ease",
-                    }}
-                  >
-                    {b.label}
-                  </motion.button>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* Step 2 — Drizzle */}
-            <motion.div
-              initial={{ opacity: 0, x: 32 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-              style={{
-                background: "#fff", borderRadius: 14, padding: "1rem 1.25rem",
-                border: `2px solid ${!base ? "rgba(0,0,0,0.08)" : drizzle ? "rgba(90,156,90,0.5)" : "rgba(139,90,60,0.35)"}`,
-                opacity: !base ? 0.5 : 1,
-                transition: "all 0.3s ease",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: base ? "0.85rem" : 0 }}>
-                <div style={stepNumStyle(!!base, !!drizzle)}>{drizzle ? "✓" : "2"}</div>
-                <div>
-                  <h3 style={{ fontSize: "1rem", fontWeight: 700, color: base ? "#1a1a1a" : "#999", margin: 0 }}>
-                    ✨ Pilih Drizzle
-                  </h3>
-                  {base && <p style={{ fontSize: "0.75rem", color: "#aaa", margin: "2px 0 0", fontWeight: 500 }}>Opsional — skip jika tidak mau</p>}
-                </div>
-              </div>
-              {base && (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.65rem" }}>
-                  {BYC_DRIZZLES.map(d => (
-                    <motion.button
-                      key={d.id}
-                      whileHover={{ scale: 1.04 }}
-                      whileTap={{ scale: 0.96 }}
-                      onClick={() => setDrizzle(drizzle === d.id ? null : d.id)}
-                      style={{
-                        padding: "0.6rem 1.25rem", borderRadius: 999,
-                        fontSize: "0.85rem", fontWeight: 600, cursor: "pointer",
-                        border: `2px solid ${drizzle === d.id ? d.color : "rgba(0,0,0,0.12)"}`,
-                        background: drizzle === d.id ? d.color : "#fff",
-                        color: drizzle === d.id ? "#fff" : "#555",
-                        transition: "all 0.22s ease",
-                        display: "flex", alignItems: "center", gap: "0.35rem",
-                      }}
-                    >
-                      <span style={{ width: 10, height: 10, borderRadius: "50%", background: d.color, display: "inline-block", flexShrink: 0 }} />
-                      {d.label}
-                    </motion.button>
-                  ))}
-                </div>
-              )}
-            </motion.div>
+            {PROGRESS.map((ps, i) => {
+              const prevDone = i === 0 || PROGRESS[i - 1].done;
+              const isActive = !ps.done && prevDone;
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: 32 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                  viewport={{ once: true }}
+                  style={{
+                    background: "#fff", borderRadius: 14, padding: "0.9rem 1.25rem",
+                    border: ps.done
+                      ? "2px solid rgba(90,156,90,0.5)"
+                      : isActive
+                        ? `2px solid ${accent}`
+                        : "2px solid rgba(0,0,0,0.07)",
+                    opacity: (!ps.done && !isActive) ? 0.4 : 1,
+                    transition: "all 0.3s ease",
+                    display: "flex", alignItems: "center", gap: "0.85rem",
+                  }}
+                >
+                  <div style={{
+                    ...stepNumBase,
+                    background: ps.done ? "#5a9c5a" : isActive ? accent : "rgba(0,0,0,0.15)",
+                  }}>
+                    {ps.done ? "✓" : i + 1}
+                  </div>
+                  <div>
+                    <span style={{
+                      fontSize: "0.95rem", fontWeight: 700,
+                      color: ps.done ? "#5a9c5a" : isActive ? "#1a1a1a" : "#999",
+                    }}>
+                      {ps.label}
+                    </span>
+                    {isActive && (
+                      <p style={{ fontSize: "0.72rem", color: "#aaa", margin: "2px 0 0", fontWeight: 500 }}>
+                        Seret bahan yang menyala ke cookie ☝️
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
 
             {/* Summary */}
             <AnimatePresence>
@@ -860,13 +1062,13 @@ function BuildYourCookie() {
                     boxShadow: `0 4px 18px ${accent}14`,
                   }}
                 >
-                  <p style={{ fontSize: "0.78rem", fontWeight: 600, color: "#5a9c5a", marginBottom: "0.4rem", margin: "0 0 0.4rem" }}>
+                  <p style={{ fontSize: "0.78rem", fontWeight: 600, color: "#5a9c5a", margin: "0 0 0.4rem" }}>
                     Cookie kamu 🍪
                   </p>
                   <p style={{ fontSize: "0.92rem", color: "#333", fontWeight: 500, lineHeight: 1.65, margin: "0 0 0.85rem" }}>
                     {BYC_BASES.find(b => b.id === base)?.label}
+                    {chipsAdded && " + Chips"}
                     {drizzle && ` + ${BYC_DRIZZLES.find(d => d.id === drizzle)?.label}`}
-                    {extras.map(e => ` + ${BYC_EXTRAS.find(x => x.id === e)?.label}`).join("")}
                   </p>
                   <motion.button
                     whileHover={{ scale: 1.03 }}
@@ -900,10 +1102,31 @@ export default function App() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
   const heroScale   = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
 
+  const [bymResult, setBymResult] = useState<{ sauce: string | null; logoAdded: boolean } | null>(null);
+  const [bycResult, setBycResult] = useState<{ base: string | null; drizzle: string | null; chipsAdded: boolean } | null>(null);
+
+  useEffect(() => {
+    const block = (e: MouseEvent) => {
+      if ((e.target as HTMLElement).tagName === "IMG") e.preventDefault();
+    };
+    document.addEventListener("contextmenu", block);
+    return () => document.removeEventListener("contextmenu", block);
+  }, []);
+
   return (
     <div className="min-h-screen" style={{ background: "#f7f4ef", position: "relative", overflow: "hidden" }}>
 
       <style>{`
+        /* ── Image Protection ── */
+        img {
+          -webkit-user-drag: none;
+          user-drag: none;
+          -webkit-user-select: none;
+          user-select: none;
+          pointer-events: none;
+        }
+        a img, button img { pointer-events: auto; }
+
         @keyframes floatUp1 { 0% { transform: translateY(100vh) scale(0.8); opacity: 0; } 10% { opacity: 0.45; } 90% { opacity: 0.45; } 100% { transform: translateY(-120px) scale(1.1); opacity: 0; } }
         @keyframes floatUp2 { 0% { transform: translateY(100vh) scale(1);   opacity: 0; } 10% { opacity: 0.35; } 90% { opacity: 0.35; } 100% { transform: translateY(-120px) scale(0.9); opacity: 0; } }
         @keyframes floatUp3 { 0% { transform: translateY(100vh) scale(0.9); opacity: 0; } 10% { opacity: 0.4;  } 90% { opacity: 0.4;  } 100% { transform: translateY(-120px) scale(1);   opacity: 0; } }
@@ -1128,10 +1351,109 @@ export default function App() {
       </section>
 
       {/* ── BUILD YOUR MILKYU ── */}
-      <BuildYourMilkyu />
+      <BuildYourMilkyu onComplete={(sauce, logoAdded) => {
+        setBymResult({ sauce, logoAdded });
+      }} />
 
       {/* ── BUILD YOUR COOKIE ── */}
-      <BuildYourCookie />
+      <BuildYourCookie onComplete={(base, drizzle, chipsAdded) => {
+        setBycResult({ base, drizzle, chipsAdded });
+      }} />
+
+      {/* ── HASIL KREASI ── */}
+      <AnimatePresence>
+        {(bymResult || bycResult) && (
+          <motion.section
+            id="hasil-kreasi"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            className="px-5"
+            style={{ paddingTop: "4rem", paddingBottom: "5rem", background: "#f7f4ef", position: "relative", zIndex: 2 }}
+          >
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center" style={{ marginBottom: "2.5rem" }}>
+                <p style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.12em", color: "#8b5a3c", textTransform: "uppercase", marginBottom: "0.6rem" }}>Kreasi Kamu</p>
+                <h2 style={{ fontSize: "clamp(1.5rem, 4vw, 2.5rem)", fontWeight: 800, color: "#1a1a1a", letterSpacing: "-0.02em" }}>Hasil Build Kamu 🎉</h2>
+                <p style={{ fontSize: "clamp(0.85rem, 2vw, 1rem)", color: "#888", maxWidth: "420px", margin: "0.75rem auto 0", lineHeight: 1.7 }}>
+                  Ini kreasi spesialmu — setiap pilihan mencerminkan selera unikmu!
+                </p>
+              </div>
+
+              <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "3rem", alignItems: "flex-start" }}>
+
+                {/* Milkyu result */}
+                {bymResult && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5 }}
+                    style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem", maxWidth: "220px", width: "100%" }}
+                  >
+                    <div style={{ background: "rgba(139,90,60,0.06)", borderRadius: 20, padding: "1.25rem", border: "1.5px solid rgba(139,90,60,0.15)", width: "100%" }}>
+                      <p style={{ fontSize: "0.7rem", fontWeight: 700, color: "#8b5a3c", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.75rem", textAlign: "center" }}>🥤 Milkyu Kamu</p>
+                      <BobaCup
+                        flavor={(bymResult.sauce ?? "matcha") as "matcha" | "strawberry" | "chocolate"}
+                        title={BUILD_SAUCES.find(s => s.id === bymResult.sauce)?.label ?? "Milkyu"}
+                        description={`Plain Milk + Es Batu + ${BUILD_SAUCES.find(s => s.id === bymResult.sauce)?.label ?? ""}`}
+                      />
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Cookie result */}
+                {bycResult && bycResult.base && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                    style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem", maxWidth: "220px", width: "100%" }}
+                  >
+                    <div style={{ background: "rgba(139,21,21,0.05)", borderRadius: 20, padding: "1.25rem", border: "1.5px solid rgba(139,21,21,0.12)", width: "100%" }}>
+                      <p style={{ fontSize: "0.7rem", fontWeight: 700, color: "#8b1515", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.75rem", textAlign: "center" }}>🍪 Cookie Kamu</p>
+                      <Cookie
+                        variant={bycResult.base as "original" | "red-velvet"}
+                        title={BYC_BASES.find(b => b.id === bycResult!.base)?.label ?? "Cookie"}
+                        description={[
+                          BYC_BASES.find(b => b.id === bycResult!.base)?.label,
+                          bycResult.chipsAdded ? "Chips" : null,
+                          BYC_DRIZZLES.find(d => d.id === bycResult!.drizzle)?.label,
+                        ].filter(Boolean).join(" + ")}
+                      />
+                    </div>
+                  </motion.div>
+                )}
+
+              </div>
+
+              {/* Bottom CTA */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.5 }}
+                style={{ textAlign: "center", marginTop: "2.5rem", display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}
+              >
+                <p style={{ fontSize: "clamp(0.85rem, 2vw, 1rem)", color: "#555", fontWeight: 600, maxWidth: "360px", lineHeight: 1.6 }}>
+                  📋 Tunjukkan pesananmu ini ke bartender kami!
+                </p>
+                <motion.button
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => { setBymResult(null); setBycResult(null); }}
+                  style={{
+                    padding: "0.6rem 1.6rem", borderRadius: "999px",
+                    background: "rgba(0,0,0,0.07)", border: "none",
+                    fontSize: "0.85rem", color: "#666", cursor: "pointer", fontWeight: 600,
+                  }}
+                >
+                  ↩ Reset Kreasi
+                </motion.button>
+              </motion.div>
+            </div>
+          </motion.section>
+        )}
+      </AnimatePresence>
 
       {/* ── ABOUT ── */}
       <section id="about" className="px-5" style={{ paddingTop: "4rem", paddingBottom: "5rem", background: "#fff", position: "relative", zIndex: 2 }}>

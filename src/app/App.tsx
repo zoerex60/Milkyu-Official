@@ -259,7 +259,7 @@ function BuildCupPreview({ step, sauce, cookie, bymUid, logoAdded = false }: Bui
 //  Build Your Milkyu — Drag & Drop
 // ─────────────────────────────────────────────
 
-function BuildYourMilkyu({ onComplete }: { onComplete?: (sauce: string | null, logoAdded: boolean) => void }) {
+function BuildYourMilkyu({ onComplete, onReset }: { onComplete?: (sauce: string | null, logoAdded: boolean) => void; onReset?: () => void }) {
   const rawId = useId();
   const bymUid = rawId.replace(/:/g, "bym");
 
@@ -307,6 +307,7 @@ function BuildYourMilkyu({ onComplete }: { onComplete?: (sauce: string | null, l
     setLogoAdded(false);
     setStep(0);
     setSauce(null);
+    onReset?.();
   };
 
   // Tray items
@@ -744,7 +745,7 @@ function CookiePreview({ base, drizzle, extras, uid, showChips = true }: CookieP
 //  Build Your Cookie — Drag & Drop
 // ─────────────────────────────────────────────
 
-function BuildYourCookie({ onComplete }: { onComplete?: (base: string | null, drizzle: string | null, chipsAdded: boolean) => void }) {
+function BuildYourCookie({ onComplete, onReset }: { onComplete?: (base: string | null, drizzle: string | null, chipsAdded: boolean) => void; onReset?: () => void }) {
   const rawId = useId();
   const uid = rawId.replace(/:/g, "byc");
 
@@ -782,6 +783,7 @@ function BuildYourCookie({ onComplete }: { onComplete?: (base: string | null, dr
     setBase(null);
     setChipsAdded(false);
     setDrizzle(null);
+    onReset?.();
   };
 
   // Tray sections
@@ -1106,6 +1108,13 @@ export default function App() {
 
   const [bymResult, setBymResult] = useState<{ sauce: string | null; logoAdded: boolean } | null>(null);
   const [bycResult, setBycResult] = useState<{ base: string | null; drizzle: string | null; chipsAdded: boolean } | null>(null);
+  const [buildResetKey, setBuildResetKey] = useState(0);
+
+  const handleResetAll = () => {
+    setBymResult(null);
+    setBycResult(null);
+    setBuildResetKey(k => k + 1);
+  };
 
   useEffect(() => {
     const block = (e: MouseEvent) => {
@@ -1353,14 +1362,14 @@ export default function App() {
       </section>
 
       {/* ── BUILD YOUR MILKYU ── */}
-      <BuildYourMilkyu onComplete={(sauce, logoAdded) => {
+      <BuildYourMilkyu key={`bym-${buildResetKey}`} onComplete={(sauce, logoAdded) => {
         setBymResult({ sauce, logoAdded });
-      }} />
+      }} onReset={handleResetAll} />
 
       {/* ── BUILD YOUR COOKIE ── */}
-      <BuildYourCookie onComplete={(base, drizzle, chipsAdded) => {
+      <BuildYourCookie key={`byc-${buildResetKey}`} onComplete={(base, drizzle, chipsAdded) => {
         setBycResult({ base, drizzle, chipsAdded });
-      }} />
+      }} onReset={handleResetAll} />
 
       {/* ── HASIL KREASI ── */}
       <AnimatePresence>
@@ -1442,7 +1451,7 @@ export default function App() {
                 <motion.button
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.96 }}
-                  onClick={() => { setBymResult(null); setBycResult(null); }}
+                  onClick={() => { handleResetAll(); }}
                   style={{
                     padding: "0.6rem 1.6rem", borderRadius: "999px",
                     background: "rgba(0,0,0,0.07)", border: "none",

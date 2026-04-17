@@ -363,7 +363,7 @@ function BuildYourMilkyu({ onComplete }: { onComplete?: (sauce: string | null, l
             Seret bahan ke dalam gelas satu per satu — dan lihat minumanmu terbentuk langsung!
           </p>
           <p style={{ fontSize: "0.78rem", color: "#aaa", marginTop: "0.4rem" }}>
-            🖱️ Drag &amp; drop bahan ke dalam gelas
+            🖱️ Drag &amp; drop atau 👆 Ketuk bahan untuk mengisi gelas
           </p>
         </motion.div>
 
@@ -390,6 +390,7 @@ function BuildYourMilkyu({ onComplete }: { onComplete?: (sauce: string | null, l
                 e.dataTransfer.setData("ingredient", item.id);
                 e.dataTransfer.effectAllowed = "move";
               } : undefined}
+              onClick={() => { if (item.unlocked) handleIngredient(item.id); }}
               whileHover={item.unlocked ? { scale: 1.1, y: -5 } : {}}
               whileTap={item.unlocked ? { scale: 0.93 } : {}}
               style={{
@@ -864,7 +865,7 @@ function BuildYourCookie({ onComplete }: { onComplete?: (base: string | null, dr
             Seret base, chips, dan drizzle ke cookie kamu — custom sampai puas!
           </p>
           <p style={{ fontSize: "0.78rem", color: "#aaa", marginTop: "0.4rem" }}>
-            🖱️ Drag &amp; drop bahan ke cookie kamu
+            🖱️ Drag &amp; drop atau 👆 Ketuk bahan ke cookie kamu
           </p>
         </motion.div>
 
@@ -897,6 +898,7 @@ function BuildYourCookie({ onComplete }: { onComplete?: (base: string | null, dr
                       e.dataTransfer.setData("ingredient", item.id);
                       e.dataTransfer.effectAllowed = "move";
                     } : undefined}
+                    onClick={() => { if (item.unlocked) handleIngredient(item.id); }}
                     whileHover={item.unlocked ? { scale: 1.1, y: -4 } : {}}
                     whileTap={item.unlocked ? { scale: 0.93 } : {}}
                     style={{

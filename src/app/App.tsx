@@ -111,6 +111,7 @@ export default function App() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
   const heroScale   = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
   const [gameActive, setGameActive] = useState(false);
+  const isMobileDevice = typeof window !== "undefined" && window.innerWidth < 768;
 
 
   useEffect(() => {
@@ -311,7 +312,7 @@ export default function App() {
         </div>
       </section>
 
-<CatchGame onGameStart={() => setGameActive(true)} onGameEnd={() => setGameActive(false)} />
+<CatchGame onGameStart={() => { if (window.innerWidth < 768) setGameActive(true); }} onGameEnd={() => setGameActive(false)} />
 
       {/* ── ABOUT ── */}
       <section id="about" className="px-5" style={{ paddingTop: "4rem", paddingBottom: "5rem", background: "#fff", position: "relative", zIndex: 2 }}>

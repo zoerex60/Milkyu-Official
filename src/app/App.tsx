@@ -110,6 +110,7 @@ export default function App() {
   const { scrollYProgress } = useScroll();
   const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
   const heroScale   = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
+  const [gameActive, setGameActive] = useState(false);
 
 
   useEffect(() => {
@@ -310,7 +311,7 @@ export default function App() {
         </div>
       </section>
 
-<CatchGame />
+<CatchGame onGameStart={() => setGameActive(true)} onGameEnd={() => setGameActive(false)} />
 
       {/* ── ABOUT ── */}
       <section id="about" className="px-5" style={{ paddingTop: "4rem", paddingBottom: "5rem", background: "#fff", position: "relative", zIndex: 2 }}>
@@ -387,7 +388,7 @@ export default function App() {
         </div>
       </footer>
 
-      <MilkyuMascot />
+      {!gameActive && <MilkyuMascot />}
     </div>
   );
 }

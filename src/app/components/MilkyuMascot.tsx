@@ -14,19 +14,7 @@ export function MilkyuMascot() {
   const [pupilX, setPupilX] = useState(0);
   const [pupilY, setPupilY] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
-  const [gameActive, setGameActive] = useState(false);
   const mascotRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const onStart = () => { if (window.innerWidth < 768) { setGameActive(true); setOpen(false); } };
-    const onEnd   = () => setGameActive(false);
-    window.addEventListener("catchgame:start", onStart);
-    window.addEventListener("catchgame:end",   onEnd);
-    return () => {
-      window.removeEventListener("catchgame:start", onStart);
-      window.removeEventListener("catchgame:end",   onEnd);
-    };
-  }, []);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -67,8 +55,6 @@ export function MilkyuMascot() {
   const bubbleRight  = size.right;
   const bubbleBottom = size.bottom + size.h + 12;
   const bubbleWidth = open ? (isMobile ? 170 : 200) : "max-content";
-
-  if (gameActive) return null;
 
   return (
     <>

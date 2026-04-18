@@ -222,7 +222,7 @@ function SkyBG({ w }: { w: number }) {
 // ─────────────────────────────────────────────────────────────────────
 //  Main Game Component
 // ─────────────────────────────────────────────────────────────────────
-export function CatchGame() {
+export function CatchGame({ onGameStart, onGameEnd }: { onGameStart?: () => void; onGameEnd?: () => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // ── Game state (React state → for rendering) ──
@@ -372,6 +372,7 @@ export function CatchGame() {
     }
 
     window.dispatchEvent(new CustomEvent("catchgame:start"));
+    onGameStart?.();
   };
 
   // ── Main rAF loop ──
@@ -533,8 +534,7 @@ export function CatchGame() {
             setStarted(false);
             bgMusic.current?.pause();
             window.dispatchEvent(new CustomEvent("catchgame:end"));
-          }
-        cookieRef.current = nc;
+            onGameEnd?.();
         scoreRef.current  = ns;
         setMilkyuCount(nm);
         setCookieCount(nc);
@@ -560,9 +560,7 @@ export function CatchGame() {
           setStarted(false);
           bgMusic.current?.pause();
           window.dispatchEvent(new CustomEvent("catchgame:end"));
-        }
-      }
-    };
+          onGameEnd?.();
 
     frameRef.current = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(frameRef.current);

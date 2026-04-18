@@ -370,6 +370,8 @@ export function CatchGame() {
       bgMusic.current.currentTime = 0;
       bgMusic.current.play().catch(() => {});
     }
+
+    window.dispatchEvent(new CustomEvent("catchgame:start"));
   };
 
   // ── Main rAF loop ──
@@ -530,10 +532,8 @@ export function CatchGame() {
             setGameOver(true);
             setStarted(false);
             bgMusic.current?.pause();
+            window.dispatchEvent(new CustomEvent("catchgame:end"));
           }
-        }
-
-        milkyuRef.current = nm;
         cookieRef.current = nc;
         scoreRef.current  = ns;
         setMilkyuCount(nm);
@@ -559,6 +559,7 @@ export function CatchGame() {
           setGameOver(true);
           setStarted(false);
           bgMusic.current?.pause();
+          window.dispatchEvent(new CustomEvent("catchgame:end"));
         }
       }
     };

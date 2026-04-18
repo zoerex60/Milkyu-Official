@@ -440,8 +440,8 @@ export function CatchGame() {
         const icx = item.x + ITEM_W / 2;
 
         if (
-          ny + ITEM_H >= CATCH_Y - 4 &&
-          ny <= CATCH_Y + CATCHER_H * 0.35 &&
+          ny + ITEM_H >= CATCH_Y + CATCHER_H * 0.28 &&
+          ny <= CATCH_Y + CATCHER_H * 0.55 &&
           Math.abs(icx - catcherCX) < CATCHER_W * 0.62
         ) {
           caught.push({ ...item, y: ny });

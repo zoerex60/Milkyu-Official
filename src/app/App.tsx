@@ -291,7 +291,7 @@ export default function App() {
             <p style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.12em", color: "#8b1515", textTransform: "uppercase", marginBottom: "0.6rem" }}>Menu Sampingan</p>
             <h2 style={{ fontSize: "clamp(1.75rem, 4vw, 3rem)", fontWeight: 800, color: "#1a1a1a", letterSpacing: "-0.02em" }}>Cookies Andalan Kami</h2>
             <p style={{ fontSize: "clamp(0.85rem, 2vw, 1rem)", color: "#888", maxWidth: "460px", margin: "0.75rem auto 0", lineHeight: 1.7 }}>
-              Padukan sticky milk favoritmu dengan soft cookies kami — lembut di luar, creamy di dalam.
+              Padukan sticky milk favoritmu dengan soft cookies kami — lembut beut dah pokoknya.
             </p>
           </motion.div>
 

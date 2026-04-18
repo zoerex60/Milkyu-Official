@@ -48,9 +48,7 @@ function createPool(src: string, size = 4): HTMLAudioElement[] {
 }
 
 function playFromPool(pool: HTMLAudioElement[]) {
-  // Cari instance yang sudah selesai/idle
-  const free = pool.find(a => a.paused || a.ended);
-  const audio = free ?? pool[0]; // fallback ke index 0 jika semua aktif
+  const audio = pool.find(a => a.paused || a.ended) ?? pool[Math.floor(Math.random() * pool.length)];
   audio.currentTime = 0;
   audio.play().catch(() => {});
 }

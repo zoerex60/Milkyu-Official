@@ -535,6 +535,11 @@ export function CatchGame({ onGameStart, onGameEnd }: { onGameStart?: () => void
             bgMusic.current?.pause();
             window.dispatchEvent(new CustomEvent("catchgame:end"));
             onGameEnd?.();
+          }
+        }
+
+        milkyuRef.current = nm;
+        cookieRef.current = nc;
         scoreRef.current  = ns;
         setMilkyuCount(nm);
         setCookieCount(nc);
@@ -561,6 +566,9 @@ export function CatchGame({ onGameStart, onGameEnd }: { onGameStart?: () => void
           bgMusic.current?.pause();
           window.dispatchEvent(new CustomEvent("catchgame:end"));
           onGameEnd?.();
+        }
+      }
+    };
 
     frameRef.current = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(frameRef.current);

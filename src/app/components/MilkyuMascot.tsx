@@ -270,6 +270,20 @@ export function MilkyuMascot() {
             <line x1="84" y1="34" x2="86" y2="28" stroke="#1a1a1a" strokeWidth="1.8" strokeLinecap="round" />
             <ellipse cx="36" cy="53" rx="9" ry="5" fill="#ffb3c6" opacity="0.42" />
             <ellipse cx="94" cy="53" rx="9" ry="5" fill="#ffb3c6" opacity="0.42" />
+            {/* ── Pita / Ribbon bow ── */}
+            <g transform="translate(15, 15)">
+              {/* Left loop */}
+              <path d="M65 6 C60 -4 47 -2 49 8 C50 15 62 12 65 6Z" fill="#ff85b3" stroke="#1a1a1a" strokeWidth="1.6" strokeLinejoin="round" />
+              {/* Right loop */}
+              <path d="M65 6 C70 -4 83 -2 81 8 C80 15 68 12 65 6Z" fill="#ff85b3" stroke="#1a1a1a" strokeWidth="1.6" strokeLinejoin="round" />
+              {/* Inner highlight left */}
+              <path d="M65 6 C61 0 52 0 53 7 C53.5 10 63 10 65 6Z" fill="#ffb3d4" opacity="0.55" />
+              {/* Inner highlight right */}
+              <path d="M65 6 C69 0 78 0 77 7 C76.5 10 67 10 65 6Z" fill="#ffb3d4" opacity="0.55" />
+              {/* Center knot */}
+              <ellipse cx="65" cy="7" rx="5" ry="4.5" fill="#e8507a" stroke="#1a1a1a" strokeWidth="1.6" />
+              <ellipse cx="63.5" cy="5.5" rx="1.8" ry="1.2" fill="rgba(255,255,255,0.4)" />
+            </g>
           </svg>
 
           {!open && (

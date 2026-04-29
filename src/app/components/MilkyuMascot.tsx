@@ -146,7 +146,7 @@ export function MilkyuMascot() {
                 Kyumii: "Jangan sungkan untuk bertanya! Terimakasih🥰"
               </p>
               <a
-                href="https://wa.me/6282246972263"
+                href="https://wa.me/6289518833985"
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{

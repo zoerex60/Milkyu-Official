@@ -112,14 +112,15 @@ const MENU_SATUAN = [
   { id: "milk-cokelat",  label: "Sticky Milk Cokelat",             price: 12000 },
   { id: "milk-matcha",   label: "Sticky Milk Matcha",              price: 12000 },
   { id: "milk-stroberi", label: "Sticky Milk Stroberi",            price: 12000 },
-  { id: "cookie-cheese", label: "Soft Cookies Red Velvet Cheese",    price: 8000 },
+  { id: "cookie-cheese",    label: "Soft Cookies Red Velvet Cheese",       price: 8000 },
+  { id: "cookie-whitechoc", label: "Soft Cookies Red Velvet White Choco",   price: 8000 },
 ];
 
 // Paket promo
 const MENU_PROMO = [
   { id: "combo",          label: "Paket Combo – Perfect Pairing",   desc: "1 Sticky Milk + 1 Soft Cookies (Isi varian di catatan)",            price: 18000 },
   { id: "double-milk",    label: "Promo Double Sticky Milk",         desc: "2 Sticky Milk bebas pilih varian (Isi varian di catatan)",          price: 20000 },
-  { id: "triple-cookies", label: "Promo Triple Cookies",             desc: "3 Soft Cookies",         price: 20000 },
+  { id: "triple-cookies", label: "Promo Triple Cookies",             desc: "3 Soft Cookies (Isi varian di catatan)",         price: 20000 },
 ];
 
 function PreOrderSection({ promoUnlocked = false }: { promoUnlocked?: boolean }) {
@@ -197,7 +198,7 @@ function PreOrderSection({ promoUnlocked = false }: { promoUnlocked?: boolean })
             </label>
             <input
               type="text"
-              placeholder="Contoh: Fadli Putra"
+              placeholder="Contoh: Jack Owi"
               value={name}
               onChange={(e) => setName(e.target.value)}
               style={inputStyle}
@@ -250,7 +251,7 @@ function PreOrderSection({ promoUnlocked = false }: { promoUnlocked?: boolean })
                   </p>
                   <p style={{ fontSize: "0.73rem", color: "#aaa", margin: 0, lineHeight: 1.5 }}>
                     Main <strong>Catch the Milkyu!</strong> di atas<br />
-                    dan raih <strong>1.000 poin</strong> untuk unlock 🎮
+                    dan raih <strong>500 poin</strong> untuk unlock 🎮
                   </p>
                   <button
                     onClick={() => document.getElementById("catchgame")?.scrollIntoView({ behavior: "smooth" })}
@@ -502,7 +503,10 @@ export default function App() {
 
           <div className="cookies-desktop">
             <motion.div initial={{ opacity: 0, y: 40, scale: 0.92 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.75, ease: "easeOut" }} viewport={{ once: true }} style={{ width: "100%", maxWidth: "240px" }}>
-              <Cookie title="Red Velvet Cream Cheese" description="Cookie red velvet yang lembut dengan isian cream cheese berkualitas." />
+              <Cookie variant="cheese" title="Red Velvet Cream Cheese" description="Cookie red velvet yang lembut dengan isian cream cheese berkualitas." />
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 40, scale: 0.92 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.75, ease: "easeOut", delay: 0.15 }} viewport={{ once: true }} style={{ width: "100%", maxWidth: "240px" }}>
+              <Cookie variant="whitechoc" title="Red Velvet White Chocolate" description="Cookie red velvet yang lembut dengan isian white chocolate yang manis." />
             </motion.div>
           </div>
 

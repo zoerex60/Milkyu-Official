@@ -555,7 +555,7 @@ export function CatchGame({ onGameStart, onGameEnd, onScoreReached }: { onGameSt
         // ── Unlock promo saat score ≥ 1000 (fire hanya sekali) ──
         if (ns >= 500 && !scoreReachedRef.current) {
           scoreReachedRef.current = true;
-          setMilestone("🎉 1000 Poin! Paket Promo Terbuka!");
+          setMilestone("🎉 500 Poin! Paket Promo Terbuka!");
           setTimeout(() => setMilestone(null), 3000);
           onScoreReached?.();
         }
@@ -757,7 +757,7 @@ export function CatchGame({ onGameStart, onGameEnd, onScoreReached }: { onGameSt
             <div style={cardStyle}>
               <div style={{ fontSize: "2.6rem", marginBottom: 6 }}>🐮</div>
               <h1 style={{ margin: "0 0 6px", fontWeight: 900, fontSize: "1rem", fontFamily: "Georgia, serif" }}>
-                Gabut nunggu bartender kami?
+                Mau dapat promo menarik?
               </h1>
               <h2 style={{ margin: "0 0 6px", fontWeight: 900, fontSize: "1.5rem", fontFamily: "Georgia, serif" }}>
                 Catch the Milkyu!

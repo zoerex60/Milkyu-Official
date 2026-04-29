@@ -11,7 +11,7 @@ import type { OrderItem, OrderPayload } from "@/app/api/checkout/route";
 // ─── Konfigurasi ──────────────────────────────────────────────────────────────
 
 /** Nomor WhatsApp toko (format internasional, tanpa +) */
-const WHATSAPP_NUMBER = "6282246972263";
+const WHATSAPP_NUMBER = "6289518833985";
 
 // ─── Helper: Format Rupiah ────────────────────────────────────────────────────
 

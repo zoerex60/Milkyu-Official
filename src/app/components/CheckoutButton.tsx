@@ -2,16 +2,35 @@
 
 // CheckoutButton.tsx
 // Komponen tombol Checkout yang:
-//   1. POST data pesanan ke /api/checkout (→ Discord Webhook)
+//   1. Fire-and-forget POST langsung ke Discord Webhook (no API route)
 //   2. Redirect user ke WhatsApp dengan teks pesanan ter-encode
 
 import { useState } from "react";
-import type { OrderItem, OrderPayload } from "@/app/api/checkout/route";
 
 // ─── Konfigurasi ──────────────────────────────────────────────────────────────
 
 /** Nomor WhatsApp toko (format internasional, tanpa +) */
 const WHATSAPP_NUMBER = "6289518833985";
+
+/**
+ * Discord Webhook URL — paste langsung di sini.
+ * Worst-case: hapus webhook lama & buat baru di Channel Settings → Integrations.
+ */
+const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1498947049058603070/5kqgYzF3JvlIrp8xB0TpWrLD4AEDq88Tnto4InTAi2YUzRX2A23RlxLCZYFG7ENxlTbn";
+
+// ─── Tipe Data ────────────────────────────────────────────────────────────────
+
+export interface OrderItem {
+  name: string;     // Nama produk, e.g. "Boba Matcha"
+  quantity: number; // Jumlah
+  price: number;    // Harga satuan (IDR)
+}
+
+export interface OrderPayload {
+  buyerName: string;  // Nama pembeli
+  items: OrderItem[];
+  note?: string;      // Catatan opsional dari pembeli
+}
 
 // ─── Helper: Format Rupiah ────────────────────────────────────────────────────
 
@@ -23,8 +42,63 @@ function formatRupiah(amount: number): string {
   }).format(amount);
 }
 
+// ─── Helper: Buat Discord Embed ───────────────────────────────────────────────
+
+function buildDiscordEmbed(payload: OrderPayload, total: number) {
+  const timestamp = new Date().toLocaleString("id-ID", {
+    timeZone: "Asia/Jakarta",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const itemLines = payload.items
+    .map((item) => {
+      const subtotal = item.price * item.quantity;
+      return `> **${item.name}** × ${item.quantity}\n> ↳ ${formatRupiah(item.price)} × ${item.quantity} = **${formatRupiah(subtotal)}**`;
+    })
+    .join("\n\n");
+
+  return {
+    embeds: [
+      {
+        title: "🛍️ Pesanan Baru Masuk!",
+        color: 0x25d366, // Hijau WhatsApp
+        fields: [
+          {
+            name: "👤 Nama Pembeli",
+            value: payload.buyerName,
+            inline: true,
+          },
+          {
+            name: "🕐 Waktu",
+            value: timestamp,
+            inline: true,
+          },
+          {
+            name: "📦 Detail Pesanan",
+            value: itemLines || "_Tidak ada item_",
+            inline: false,
+          },
+          {
+            name: "💰 Total Harga",
+            value: `**${formatRupiah(total)}**`,
+            inline: false,
+          },
+          ...(payload.note
+            ? [{ name: "📝 Catatan", value: payload.note, inline: false }]
+            : []),
+        ],
+        footer: { text: "MilkyuShop · Pesanan via Website" },
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  };
+}
+
 // ─── Helper: Buat Teks WhatsApp ───────────────────────────────────────────────
-// Menghasilkan pesan rapi yang siap dikirim via WA
 
 function buildWhatsAppText(payload: OrderPayload, total: number): string {
   const itemLines = payload.items
@@ -34,7 +108,7 @@ function buildWhatsAppText(payload: OrderPayload, total: number): string {
     )
     .join("\n");
 
-  const lines = [
+  return [
     "Halo Milkyu! Saya ingin memesan:",
     "",
     `👤 Nama  : ${payload.buyerName}`,
@@ -46,27 +120,21 @@ function buildWhatsAppText(payload: OrderPayload, total: number): string {
     ...(payload.note ? ["", `📝 Catatan: ${payload.note}`] : []),
     "",
     "Mohon konfirmasi pesanan saya ya, terima kasih! 🙏",
-  ];
-
-  return lines.join("\n");
+  ].join("\n");
 }
 
 // ─── Helper: Buka WhatsApp ────────────────────────────────────────────────────
 
 function redirectToWhatsApp(payload: OrderPayload, total: number): void {
-  const text = buildWhatsAppText(payload, total);
-  const encoded = encodeURIComponent(text);
+  const encoded = encodeURIComponent(buildWhatsAppText(payload, total));
   window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, "_blank");
 }
 
 // ─── Props & Komponen Utama ───────────────────────────────────────────────────
 
 interface CheckoutButtonProps {
-  /** Data pembeli dan item — dikontrol oleh parent */
   order: OrderPayload;
-  /** Dinonaktifkan jika keranjang kosong / form belum valid */
   disabled?: boolean;
-  /** Callback setelah checkout berhasil (opsional) */
   onSuccess?: (total: number) => void;
 }
 
@@ -75,7 +143,6 @@ export function CheckoutButton({ order, disabled = false, onSuccess }: CheckoutB
   const [errorMsg, setErrorMsg] = useState("");
 
   const handleCheckout = async () => {
-    // Validasi sederhana di sisi client sebelum hit API
     if (!order.buyerName.trim() || order.items.length === 0) {
       setStatus("error");
       setErrorMsg("Nama dan item pesanan wajib diisi.");
@@ -85,36 +152,20 @@ export function CheckoutButton({ order, disabled = false, onSuccess }: CheckoutB
     setStatus("loading");
     setErrorMsg("");
 
-    // Hitung total lokal sebagai fallback jika API tidak merespons
-    const localTotal = order.items.reduce((s, i) => s + i.price * i.quantity, 0);
+    const total = order.items.reduce((s, i) => s + i.price * i.quantity, 0);
 
-    try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(order),
-      });
+    // Fire-and-forget — kalau Discord gagal, user tetap lanjut ke WA
+    fetch(DISCORD_WEBHOOK, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(buildDiscordEmbed(order, total)),
+    }).catch(() => {
+      // Abaikan error jaringan — notifikasi Discord bersifat opsional
+    });
 
-      // Parse JSON secara aman — kalau response kosong/HTML, tetap lanjut ke WA
-      let apiTotal = localTotal;
-      try {
-        const text = await res.text();
-        if (text) {
-          const data = JSON.parse(text);
-          if (data.total) apiTotal = data.total;
-        }
-      } catch {
-        // Bukan JSON — abaikan, pakai localTotal
-      }
-
-      setStatus("success");
-      onSuccess?.(apiTotal);
-      redirectToWhatsApp(order, apiTotal);
-    } catch {
-      // Fetch gagal total (offline/CORS) — tetap redirect WA dengan total lokal
-      setStatus("success");
-      redirectToWhatsApp(order, localTotal);
-    }
+    setStatus("success");
+    onSuccess?.(total);
+    redirectToWhatsApp(order, total);
   };
 
   // ─── Render ─────────────────────────────────────────────────────────────────
@@ -124,7 +175,6 @@ export function CheckoutButton({ order, disabled = false, onSuccess }: CheckoutB
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", width: "100%" }}>
-      {/* Tombol utama */}
       <button
         onClick={handleCheckout}
         disabled={isDisabled}
@@ -146,18 +196,10 @@ export function CheckoutButton({ order, disabled = false, onSuccess }: CheckoutB
           opacity: isDisabled ? 0.6 : 1,
           boxShadow: isDisabled ? "none" : "0 4px 14px rgba(37,211,102,0.35)",
         }}
-        onMouseEnter={(e) => {
-          if (!isDisabled) e.currentTarget.style.background = "#1ebe5d";
-        }}
-        onMouseLeave={(e) => {
-          if (!isDisabled) e.currentTarget.style.background = "#25D366";
-        }}
-        onMouseDown={(e) => {
-          if (!isDisabled) e.currentTarget.style.transform = "scale(0.97)";
-        }}
-        onMouseUp={(e) => {
-          if (!isDisabled) e.currentTarget.style.transform = "scale(1)";
-        }}
+        onMouseEnter={(e) => { if (!isDisabled) e.currentTarget.style.background = "#1ebe5d"; }}
+        onMouseLeave={(e) => { if (!isDisabled) e.currentTarget.style.background = "#25D366"; }}
+        onMouseDown={(e)  => { if (!isDisabled) e.currentTarget.style.transform = "scale(0.97)"; }}
+        onMouseUp={(e)    => { if (!isDisabled) e.currentTarget.style.transform = "scale(1)"; }}
       >
         {/* Ikon WhatsApp */}
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -165,10 +207,7 @@ export function CheckoutButton({ order, disabled = false, onSuccess }: CheckoutB
         </svg>
 
         {isLoading ? (
-          <>
-            <Spinner />
-            Memproses pesanan…
-          </>
+          <><Spinner />Memproses pesanan…</>
         ) : status === "success" ? (
           "✅ Pesanan Terkirim!"
         ) : (
@@ -176,30 +215,14 @@ export function CheckoutButton({ order, disabled = false, onSuccess }: CheckoutB
         )}
       </button>
 
-      {/* Pesan error */}
       {status === "error" && errorMsg && (
-        <p
-          style={{
-            fontSize: "0.8rem",
-            color: "#e53e3e",
-            textAlign: "center",
-            margin: 0,
-          }}
-        >
+        <p style={{ fontSize: "0.8rem", color: "#e53e3e", textAlign: "center", margin: 0 }}>
           ⚠️ {errorMsg}
         </p>
       )}
 
-      {/* Info kecil */}
       {status === "idle" && (
-        <p
-          style={{
-            fontSize: "0.75rem",
-            color: "#aaa",
-            textAlign: "center",
-            margin: 0,
-          }}
-        >
+        <p style={{ fontSize: "0.75rem", color: "#aaa", textAlign: "center", margin: 0 }}>
           Notifikasi otomatis dikirim ke admin 🔔
         </p>
       )}

@@ -107,29 +107,19 @@ function FlavorCarousel() {
 //  Pre-Order Section
 // ─────────────────────────────────────────────
 
-// Menu satuan
-const MENU_SATUAN = [
-  { id: "milk-cokelat",  label: "Sticky Milk Cokelat",             price: 12000 },
-  { id: "milk-matcha",   label: "Sticky Milk Matcha",              price: 12000 },
-  { id: "milk-stroberi", label: "Sticky Milk Stroberi",            price: 12000 },
-  { id: "cookie-cheese", label: "Soft Cookies Red Velvet Cheese",    price: 8000 },
+const MENU_ITEMS = [
+  { id: "matcha",     label: "Boba Matcha Bliss",          price: 12000 },
+  { id: "strawberry", label: "Boba Strawberry Dream",       price: 12000 },
+  { id: "chocolate",  label: "Boba Chocolate Indulgence",   price: 12000 },
+  { id: "cookie",     label: "Cookie Red Velvet Cream Cheese", price: 8000 },
 ];
 
-// Paket promo
-const MENU_PROMO = [
-  { id: "combo",          label: "Paket Combo – Perfect Pairing",   desc: "1 Sticky Milk + 1 Soft Cookies (Isi varian di catatan)",            price: 18000 },
-  { id: "double-milk",    label: "Promo Double Sticky Milk",         desc: "2 Sticky Milk bebas pilih varian (Isi varian di catatan)",          price: 20000 },
-  { id: "triple-cookies", label: "Promo Triple Cookies",             desc: "3 Soft Cookies",         price: 20000 },
-];
-
-function PreOrderSection({ promoUnlocked = false }: { promoUnlocked?: boolean }) {
+function PreOrderSection() {
   const [name, setName]   = useState("");
   const [note, setNote]   = useState("");
   const [qty, setQty]     = useState<Record<string, number>>({});
 
-  const allItems = [...MENU_SATUAN, ...MENU_PROMO];
-
-  const selectedItems = allItems
+  const selectedItems = MENU_ITEMS
     .filter((m) => (qty[m.id] ?? 0) > 0)
     .map((m) => ({ name: m.label, quantity: qty[m.id], price: m.price }));
 
@@ -147,30 +137,6 @@ function PreOrderSection({ promoUnlocked = false }: { promoUnlocked?: boolean })
     fontSize: "0.9rem", background: "#fff",
     outline: "none", color: "#1a1a1a",
     boxSizing: "border-box",
-  };
-
-  const sectionLabelStyle: React.CSSProperties = {
-    fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.1em",
-    textTransform: "uppercase", color: "#aaa",
-    margin: "1rem 0 0.5rem",
-  };
-
-  const renderRow = (m: { id: string; label: string; desc?: string; price: number }) => {
-    const q = qty[m.id] ?? 0;
-    return (
-      <div key={m.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.65rem 0.9rem", borderRadius: "10px", border: `1.5px solid ${q > 0 ? "#8b5a3c" : "rgba(0,0,0,0.09)"}`, background: q > 0 ? "rgba(139,90,60,0.04)" : "#fafafa", transition: "all 0.2s" }}>
-        <div style={{ flex: 1, marginRight: "0.5rem" }}>
-          <p style={{ fontSize: "0.88rem", fontWeight: 600, color: "#1a1a1a", margin: 0 }}>{m.label}</p>
-          {"desc" in m && m.desc && <p style={{ fontSize: "0.72rem", color: "#bbb", margin: "1px 0 0" }}>{m.desc}</p>}
-          <p style={{ fontSize: "0.75rem", color: "#aaa", margin: 0 }}>{formatRp(m.price)}</p>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
-          <button onClick={() => changeQty(m.id, -1)} style={{ width: 28, height: 28, borderRadius: "50%", border: "1.5px solid rgba(0,0,0,0.12)", background: "#fff", cursor: "pointer", fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center", color: "#555" }}>−</button>
-          <span style={{ fontSize: "0.9rem", fontWeight: 700, color: "#1a1a1a", minWidth: "1.2rem", textAlign: "center" }}>{q}</span>
-          <button onClick={() => changeQty(m.id, +1)} style={{ width: 28, height: 28, borderRadius: "50%", border: "1.5px solid rgba(0,0,0,0.12)", background: "#1a1a1a", cursor: "pointer", fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>+</button>
-        </div>
-      </div>
-    );
   };
 
   return (
@@ -197,7 +163,7 @@ function PreOrderSection({ promoUnlocked = false }: { promoUnlocked?: boolean })
             </label>
             <input
               type="text"
-              placeholder="Contoh: Fadli Putra"
+              placeholder="Contoh: Siti Rahayu"
               value={name}
               onChange={(e) => setName(e.target.value)}
               style={inputStyle}
@@ -206,66 +172,26 @@ function PreOrderSection({ promoUnlocked = false }: { promoUnlocked?: boolean })
 
           {/* Pilih Menu */}
           <div style={{ marginBottom: "1.25rem" }}>
-            <label style={{ fontSize: "0.8rem", fontWeight: 700, color: "#555", letterSpacing: "0.05em", textTransform: "uppercase", display: "block", marginBottom: "0.25rem" }}>
+            <label style={{ fontSize: "0.8rem", fontWeight: 700, color: "#555", letterSpacing: "0.05em", textTransform: "uppercase", display: "block", marginBottom: "0.75rem" }}>
               Pilih Menu *
             </label>
-
-            {/* ── Menu Satuan ── */}
-            <p style={sectionLabelStyle}>🥛 🍪 Menu Satuan</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", marginBottom: "0.5rem" }}>
-              {MENU_SATUAN.map(renderRow)}
-            </div>
-
-            {/* ── Paket Promo ── */}
-            <p style={sectionLabelStyle}>🎁 Paket Promo & Bundling</p>
-            <div style={{ position: "relative" }}>
-              {/* Items (blurred ketika locked) */}
-              <div style={{
-                display: "flex", flexDirection: "column", gap: "0.6rem",
-                filter: promoUnlocked ? "none" : "blur(3px)",
-                pointerEvents: promoUnlocked ? "auto" : "none",
-                userSelect: promoUnlocked ? "auto" : "none",
-                transition: "filter 0.4s ease",
-              }}>
-                {MENU_PROMO.map(renderRow)}
-              </div>
-
-              {/* Lock overlay */}
-              {!promoUnlocked && (
-                <div style={{
-                  position: "absolute", inset: 0,
-                  display: "flex", flexDirection: "column",
-                  alignItems: "center", justifyContent: "center",
-                  gap: "0.5rem",
-                  background: "rgba(247,244,239,0.82)",
-                  borderRadius: "12px",
-                  backdropFilter: "blur(2px)",
-                  border: "2px dashed rgba(139,90,60,0.3)",
-                  padding: "1rem",
-                  textAlign: "center",
-                }}>
-                  <span style={{ fontSize: "1.8rem" }}>🔒</span>
-                  <p style={{ fontSize: "0.82rem", fontWeight: 700, color: "#8b5a3c", margin: 0, lineHeight: 1.4 }}>
-                    Paket Promo Terkunci!
-                  </p>
-                  <p style={{ fontSize: "0.73rem", color: "#aaa", margin: 0, lineHeight: 1.5 }}>
-                    Main <strong>Catch the Milkyu!</strong> di atas<br />
-                    dan raih <strong>1.000 poin</strong> untuk unlock 🎮
-                  </p>
-                  <button
-                    onClick={() => document.getElementById("catchgame")?.scrollIntoView({ behavior: "smooth" })}
-                    style={{
-                      marginTop: "0.25rem",
-                      background: "#1a1a1a", color: "#f9f5ec",
-                      border: "none", borderRadius: "8px",
-                      padding: "6px 14px", fontSize: "0.75rem",
-                      fontWeight: 700, cursor: "pointer",
-                    }}
-                  >
-                    Main Sekarang 🎮
-                  </button>
-                </div>
-              )}
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+              {MENU_ITEMS.map((m) => {
+                const q = qty[m.id] ?? 0;
+                return (
+                  <div key={m.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.65rem 0.9rem", borderRadius: "10px", border: `1.5px solid ${q > 0 ? "#8b5a3c" : "rgba(0,0,0,0.09)"}`, background: q > 0 ? "rgba(139,90,60,0.04)" : "#fafafa", transition: "all 0.2s" }}>
+                    <div>
+                      <p style={{ fontSize: "0.88rem", fontWeight: 600, color: "#1a1a1a", margin: 0 }}>{m.label}</p>
+                      <p style={{ fontSize: "0.75rem", color: "#aaa", margin: 0 }}>{formatRp(m.price)}</p>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <button onClick={() => changeQty(m.id, -1)} style={{ width: 28, height: 28, borderRadius: "50%", border: "1.5px solid rgba(0,0,0,0.12)", background: "#fff", cursor: "pointer", fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center", color: "#555" }}>−</button>
+                      <span style={{ fontSize: "0.9rem", fontWeight: 700, color: "#1a1a1a", minWidth: "1.2rem", textAlign: "center" }}>{q}</span>
+                      <button onClick={() => changeQty(m.id, +1)} style={{ width: 28, height: 28, borderRadius: "50%", border: "1.5px solid rgba(0,0,0,0.12)", background: "#1a1a1a", cursor: "pointer", fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>+</button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -311,7 +237,6 @@ export default function App() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
   const heroScale   = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
   const [gameActive, setGameActive] = useState(false);
-  const [promoUnlocked, setPromoUnlocked] = useState(false);
   const isMobileDevice = typeof window !== "undefined" && window.innerWidth < 768;
 
 
@@ -512,12 +437,10 @@ export default function App() {
         </div>
       </section>
 
-<div id="catchgame">
-<CatchGame onGameStart={() => { if (window.innerWidth < 768) setGameActive(true); }} onGameEnd={() => setGameActive(false)} onScoreReached={() => setPromoUnlocked(true)} />
-</div>
+<CatchGame onGameStart={() => { if (window.innerWidth < 768) setGameActive(true); }} onGameEnd={() => setGameActive(false)} />
 
       {/* ── PRE-ORDER ── */}
-      <PreOrderSection promoUnlocked={promoUnlocked} />
+      <PreOrderSection />
 
       {/* ── ABOUT ── */}
       <section id="about" className="px-5" style={{ paddingTop: "4rem", paddingBottom: "5rem", background: "#e8e2d9", position: "relative", zIndex: 2 }}>

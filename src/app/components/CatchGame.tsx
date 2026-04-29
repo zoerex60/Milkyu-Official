@@ -132,7 +132,7 @@ function MaleMascotSVG({ dir = 0, flash = false }: { dir: number; flash?: boolea
 function FallingMilkyuSVG() {
   return (
     <img
-      src="/milkyu-logo.png"
+      src="images/milkyu-logo.png"
       alt="Milkyu"
       style={{ width: ITEM_W, height: ITEM_H, objectFit: "contain", display: "block" }}
     />
@@ -222,7 +222,7 @@ function SkyBG({ w }: { w: number }) {
 // ─────────────────────────────────────────────────────────────────────
 //  Main Game Component
 // ─────────────────────────────────────────────────────────────────────
-export function CatchGame({ onGameStart, onGameEnd }: { onGameStart?: () => void; onGameEnd?: () => void }) {
+export function CatchGame({ onGameStart, onGameEnd, onScoreReached }: { onGameStart?: () => void; onGameEnd?: () => void; onScoreReached?: () => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // ── Game state (React state → for rendering) ──
@@ -257,6 +257,7 @@ export function CatchGame({ onGameStart, onGameEnd }: { onGameStart?: () => void
   const lastSpawnRef  = useRef(0);
   const nextIdRef     = useRef(0);
   const effectsRef    = useRef<PopEffect[]>([]);
+  const scoreReachedRef = useRef(false); // fire onScoreReached hanya sekali
 
   // ── Audio ──
   // Pools: 4 instance per sound → tidak tabrakan ketika catch banyak sekaligus
@@ -322,10 +323,16 @@ export function CatchGame({ onGameStart, onGameEnd }: { onGameStart?: () => void
   // ── Keyboard ──
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
+      const tag = (document.activeElement as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
       keysRef.current.add(e.key);
       if (["ArrowLeft","ArrowRight","a","d","A","D"].includes(e.key)) e.preventDefault();
     };
-    const up = (e: KeyboardEvent) => keysRef.current.delete(e.key);
+    const up = (e: KeyboardEvent) => {
+      const tag = (document.activeElement as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      keysRef.current.delete(e.key);
+    };
     window.addEventListener("keydown", down);
     window.addEventListener("keyup",   up);
     return () => {
@@ -544,6 +551,14 @@ export function CatchGame({ onGameStart, onGameEnd }: { onGameStart?: () => void
         setMilkyuCount(nm);
         setCookieCount(nc);
         setScore(ns);
+
+        // ── Unlock promo saat score ≥ 1000 (fire hanya sekali) ──
+        if (ns >= 500 && !scoreReachedRef.current) {
+          scoreReachedRef.current = true;
+          setMilestone("🎉 1000 Poin! Paket Promo Terbuka!");
+          setTimeout(() => setMilestone(null), 3000);
+          onScoreReached?.();
+        }
 
         effectsRef.current = [...effectsRef.current, ...newEffects];
         setEffects([...effectsRef.current]);

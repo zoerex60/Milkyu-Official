@@ -143,7 +143,7 @@ export function MilkyuMascot() {
                 fontWeight: 500,
                 lineHeight: 1.45,
               }}>
-                Kyumii: "Klik untuk pesan ya kak! Terimakasih🥰"
+                Kyumii: "Jangan sungkan untuk bertanya! Terimakasih🥰"
               </p>
               <a
                 href="https://wa.me/6282246972263"

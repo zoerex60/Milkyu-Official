@@ -553,9 +553,9 @@ export function CatchGame({ onGameStart, onGameEnd, onScoreReached }: { onGameSt
         setScore(ns);
 
         // ── Unlock promo saat score ≥ 1000 (fire hanya sekali) ──
-        if (ns >= 500 && !scoreReachedRef.current) {
+        if (ns >= 300 && !scoreReachedRef.current) {
           scoreReachedRef.current = true;
-          setMilestone("🎉 500 Poin! Paket Promo Terbuka!");
+          setMilestone("🎉 300 Poin! Paket Promo Terbuka!");
           setTimeout(() => setMilestone(null), 3000);
           onScoreReached?.();
         }

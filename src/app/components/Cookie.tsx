@@ -53,7 +53,7 @@ const COOKIE_VARIANTS = [
   {
     variant: "whitechoc" as const,
     title: "Red Velvet White Chocolate",
-    description: "Cookie red velvet yang lembut dengan isian white chocolate yang manis.",
+    description: "Cookie red velvet yang lembut dengan isian white chocolate yang menonjol di sisi cookies.",
   },
 ];
 

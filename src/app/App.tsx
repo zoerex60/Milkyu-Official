@@ -251,7 +251,7 @@ function PreOrderSection({ promoUnlocked = false }: { promoUnlocked?: boolean })
                   </p>
                   <p style={{ fontSize: "0.73rem", color: "#aaa", margin: 0, lineHeight: 1.5 }}>
                     Main <strong>Catch the Milkyu!</strong> di atas<br />
-                    dan raih <strong>500 poin</strong> untuk unlock 🎮
+                    dan raih <strong>300 poin</strong> untuk unlock 🎮
                   </p>
                   <button
                     onClick={() => document.getElementById("catchgame")?.scrollIntoView({ behavior: "smooth" })}
@@ -313,6 +313,7 @@ export default function App() {
   const heroScale   = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
   const [gameActive, setGameActive] = useState(false);
   const [promoUnlocked, setPromoUnlocked] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const isMobileDevice = typeof window !== "undefined" && window.innerWidth < 768;
 
 
@@ -412,13 +413,94 @@ export default function App() {
             <a href="#about"        style={{ textDecoration: "none", color: "#666" }} className="hover:opacity-60 transition-opacity">Tentang</a>
             <a href="#contact"      style={{ textDecoration: "none", color: "#666" }} className="hover:opacity-60 transition-opacity">Kontak</a>
           </nav>
-          <nav className="nav-mobile items-center gap-4">
-            <a href="#flavors"  style={{ textDecoration: "none", color: "#666", fontSize: "0.8rem", fontWeight: 600 }}>Menu</a>
-            <a href="#preorder" style={{ textDecoration: "none", color: "#666", fontSize: "0.8rem", fontWeight: 600 }}>Order</a>
-            <a href="#contact"  style={{ textDecoration: "none", color: "#666", fontSize: "0.8rem", fontWeight: 600 }}>Kontak</a>
-          </nav>
+          <button
+            className="nav-mobile"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Buka menu"
+            style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", display: "flex", flexDirection: "column", gap: "5px", alignItems: "center", justifyContent: "center" }}
+          >
+            <span style={{ display: "block", width: 22, height: 2, background: "#1a1a1a", borderRadius: 2 }} />
+            <span style={{ display: "block", width: 22, height: 2, background: "#1a1a1a", borderRadius: 2 }} />
+            <span style={{ display: "block", width: 22, height: 2, background: "#1a1a1a", borderRadius: 2 }} />
+          </button>
         </div>
       </motion.header>
+
+      {/* ── MOBILE DRAWER ── */}
+      <AnimatePresence>
+        {menuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.22 }}
+              onClick={() => setMenuOpen(false)}
+              style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 99 }}
+            />
+            {/* Drawer */}
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "tween", duration: 0.28, ease: "easeInOut" }}
+              style={{
+                position: "fixed", top: 0, right: 0, bottom: 0,
+                width: "72vw", maxWidth: "280px",
+                background: "#e8e2d9",
+                zIndex: 100,
+                display: "flex",
+                flexDirection: "column",
+                padding: "1.25rem 1.25rem 2rem",
+                boxShadow: "-4px 0 32px rgba(0,0,0,0.13)",
+              }}
+            >
+              {/* Top row: logo + close */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "2.25rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
+                  <img src="images/milkyu-logo.png" alt="Milkyu Logo" style={{ width: 30, height: 30, objectFit: "contain" }} />
+                  <span style={{ fontSize: "1rem", fontWeight: 700, color: "#1a1a1a" }}>Milkyu</span>
+                </div>
+                <button
+                  onClick={() => setMenuOpen(false)}
+                  aria-label="Tutup menu"
+                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.3rem", color: "#888", lineHeight: 1, padding: "4px" }}
+                >✕</button>
+              </div>
+
+              {/* Nav links */}
+              {[
+                { href: "#flavors",  label: "Menu Utama" },
+                { href: "#cookie",   label: "Menu Sampingan" },
+                { href: "#preorder", label: "Pre-Order" },
+                { href: "#about",    label: "Tentang" },
+                { href: "#contact",  label: "Kontak" },
+              ].map(({ href, label }, i) => (
+                <motion.a
+                  key={href}
+                  href={href}
+                  onClick={() => setMenuOpen(false)}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.06 + i * 0.05, duration: 0.22 }}
+                  style={{
+                    textDecoration: "none",
+                    color: "#1a1a1a",
+                    fontSize: "1rem",
+                    fontWeight: 600,
+                    padding: "0.9rem 0",
+                    borderBottom: "1px solid rgba(0,0,0,0.08)",
+                    display: "block",
+                  }}
+                >
+                  {label}
+                </motion.a>
+              ))}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* ── HERO ── */}
       <motion.section
@@ -506,7 +588,7 @@ export default function App() {
               <Cookie variant="cheese" title="Red Velvet Cream Cheese" description="Cookie red velvet yang lembut dengan isian cream cheese berkualitas." />
             </motion.div>
             <motion.div initial={{ opacity: 0, y: 40, scale: 0.92 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.75, ease: "easeOut", delay: 0.15 }} viewport={{ once: true }} style={{ width: "100%", maxWidth: "240px" }}>
-              <Cookie variant="whitechoc" title="Red Velvet White Chocolate" description="Cookie red velvet yang lembut dengan isian white chocolate yang manis." />
+              <Cookie variant="whitechoc" title="Red Velvet White Chocolate" description="Cookie red velvet yang lembut dengan isian white chocolate yang menonjol di sisi cookies." />
             </motion.div>
           </div>
 
